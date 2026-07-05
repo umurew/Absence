@@ -1,0 +1,11 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Style src="HUD_StyleSheet.uss" />
+
+    <ui:VisualElement name="HUDContainer" class="hud-container">
+        <ui:VisualElement name="Crosshair" class="crosshair" />
+        <ui:VisualElement name="PromptLabelContainer" class="prompt-container">
+            <ui:Label name="PromptHeaderlabel" class="prompt-header" text="Prompt Header" />
+            <ui:Label name="PromptLabel" class="prompt-label" text="Prompt Label" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
