@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8788031808435675196}
   - component: {fileID: 5238130478096695559}
   - component: {fileID: 1287293603834709297}
-  - component: {fileID: 2186958718493804651}
+  - component: {fileID: 7569553126723055523}
   - component: {fileID: 7527292093751663285}
   m_Layer: 0
   m_Name: FirstPersonCamera
@@ -62,7 +62,7 @@ MonoBehaviour:
   Lens:
     FieldOfView: 60.000004
     OrthographicSize: 5
-    NearClipPlane: 0.3
+    NearClipPlane: 0.01
     FarClipPlane: 1000
     Dutch: 0
     ModeOverride: 0
@@ -126,7 +126,7 @@ MonoBehaviour:
       Wait: 1
       Time: 2
     Restrictions: 0
---- !u!114 &2186958718493804651
+--- !u!114 &7569553126723055523
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -138,7 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44d70cc20219cd84593f67d248eafe36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCameraOffset
-  Offset: {x: 0, y: 0.5, z: 0}
+  Offset: {x: 0, y: 0.1, z: -0.1}
   ApplyAfter: 1
   PreserveComposition: 0
 --- !u!114 &7527292093751663285
@@ -164,7 +164,7 @@ MonoBehaviour:
       Input:
         InputAction: {fileID: 4047694560607676005, guid: bc6d28409f6d0f14cb219f4a1770ef7d, type: 3}
         Gain: 0.2
-        CancelDeltaTime: 0
+        CancelDeltaTime: 1
       InputValue: 0
       Driver:
         AccelTime: 0.2
@@ -175,8 +175,8 @@ MonoBehaviour:
       Input:
         InputAction: {fileID: 4047694560607676005, guid: bc6d28409f6d0f14cb219f4a1770ef7d, type: 3}
         Gain: -0.2
-        CancelDeltaTime: 0
-      InputValue: 0
+        CancelDeltaTime: 1
+      InputValue: -0
       Driver:
         AccelTime: 0.2
         DecelTime: 0.2

@@ -1,0 +1,67 @@
+.console-container
+{
+	height: 40%;
+	background-color: rgba(30, 30, 45, 0.5);
+	border-bottom-width: 1px;
+	border-bottom-color: rgba(255, 165, 0, 0.25);
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 10px;
+	padding-bottom: 5px;
+	pointer-events: auto;
+	flex-direction: column;
+}
+
+.console-scroll-view
+{
+	flex-grow: 1;
+	margin-bottom: 5px;
+}
+
+.console-text
+{
+	color: rgb(209, 209, 209);
+	font-size: 12px;
+	white-space: normal;
+}
+
+.console-input-container
+{
+	flex-direction: row;
+	align-items: center;
+	height: 30px;
+	border-top-width: 1px;
+	border-top-color: rgba(255, 255, 255, 0.2);
+	background-color: rgba(20, 20, 40, 0.2);
+	border-radius: 4px;
+	padding-top: 5px;
+	margin-bottom: 5px;
+}
+
+.console-input-placeholder
+{
+	color: rgb(255, 255, 255);
+	font-size: 16px;
+	margin-right: 5px;
+	-unity-text-align: upper-center;
+	margin-top: -3px;
+	margin-left: 10px;
+}
+
+.console-input-textfield
+{
+	flex-grow: 1;
+	color: rgb(255, 255, 255);
+	font-size: 14px;
+	border-width: 0px;
+	padding: 2px;
+}
+
+TextField > TextInput
+{
+    background-color: transparent; 
+    border-width: 0px;
+	padding-top: 0px;
+    padding-bottom: 0px;
+	justify-content: center;
+}

@@ -12,7 +12,6 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float raycastDistance = 3.5f;
     [Description("Sphere radius which determines the raycast sphere's radius.")]
     [SerializeField] private float raycastRadius = 0.2f;
-    [SerializeField] private LayerMask interactableLayer;
 
     [Header("UI References")]
     [SerializeField] private UIDocument hudDocument;
@@ -54,13 +53,13 @@ public class PlayerInteraction : MonoBehaviour
     {
         Ray ray = new(cameraTransform.position, cameraTransform.forward);
 
-        if (Physics.SphereCast(ray, raycastRadius, out RaycastHit raycastHit, raycastDistance, interactableLayer))
+        if (Physics.SphereCast(ray, raycastRadius, out RaycastHit raycastHit, raycastDistance))
         {
             IInteractable iinteractable = raycastHit.collider.GetComponent<IInteractable>();
 
             if (iinteractable is not null)
             {
-                if (iinteractable == currentInteractable)
+                if (iinteractable == currentInteractable && iinteractable.GetInteractPrompt() == promptLabel.text)
                     return;
 
                 currentInteractable = iinteractable;

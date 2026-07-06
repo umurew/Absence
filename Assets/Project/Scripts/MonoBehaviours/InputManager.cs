@@ -7,6 +7,7 @@ public class InputManager : MonoBehaviour
 
     public InputActions inputActions { get; private set; }
     public InputActions.PlayerActions playerActions { get; private set; }
+    public InputActions.UIActions uiActions { get; private set; }
 
     private void Awake()
     {
@@ -21,13 +22,22 @@ public class InputManager : MonoBehaviour
 
         inputActions = new();
         playerActions = inputActions.Player;
+        uiActions = inputActions.UI;
     }
 
     private void OnDestroy() => inputActions.Dispose();
 
-    private void OnEnable() => playerActions.Enable();
+    private void OnEnable()
+    {
+        playerActions.Enable();
+        uiActions.Enable();
+    }
 
-    private void OnDisable() => playerActions.Disable();
+    private void OnDisable()
+    {
+        playerActions.Disable();
+        uiActions.Disable();
+    }
 
     public void SetCursorState(bool isLocked)
     {
