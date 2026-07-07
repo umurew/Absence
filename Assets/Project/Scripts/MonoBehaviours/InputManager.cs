@@ -9,6 +9,10 @@ public class InputManager : MonoBehaviour
     public InputActions.PlayerActions PlayerActions { get; private set; }
     public InputActions.UiActions UiActions { get; private set; }
 
+    public string NewLine = "\n";
+    public string Break = "\n\n";
+    public string Tab = "\t";
+
     private void Awake()
     {
         if (Instance != null && Instance != this)

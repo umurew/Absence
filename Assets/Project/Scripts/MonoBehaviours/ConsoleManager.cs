@@ -14,17 +14,11 @@ public class ConsoleManager : MonoBehaviour
     [SerializeField] private UIDocument consoleDocument;
     [SerializeField] private CinemachineCamera firstPersonCamera;
 
-    private readonly Dictionary<string, IConsoleCommand> _commands = new();
+    private readonly Dictionary<string, ICommand> _commands = new();
     private VisualElement consoleContainer;
     private ScrollView consoleScrollView;
     private TextField consoleInputTextField;
     private bool consoleState = false;
-    public string NewLine => "\n";
-    public string Break => "\n\n";
-    public string ErrorColor => "#CC4141";
-    public string PrimaryColor => "#E1E1E1";
-    public string AccentColor => "#77BAFF";
-    public string GrayedColor => "#8493A3";
 
     private void Awake()
     {
@@ -96,7 +90,7 @@ public class ConsoleManager : MonoBehaviour
             string commandName = splitInput[0];
             string[] arguments = splitInput.Skip(1).ToArray();
 
-            if (_commands.TryGetValue(commandName.ToLower(), out IConsoleCommand command))
+            if (_commands.TryGetValue(commandName.ToLower(), out ICommand command))
             {
                 try
                 {
@@ -137,9 +131,11 @@ public class ConsoleManager : MonoBehaviour
 
     public void Log(string message, bool printTimestamp = false)
     {
+        var inputManager = InputManager.Instance;
+
         Label label = new()
         {
-            text = printTimestamp ? $"[{DateTime.Now:HH:mm}] {message}{ConsoleManager.Instance.Break}" : $"{message}{ConsoleManager.Instance.Break}"
+            text = printTimestamp ? $"[{DateTime.Now:HH:mm}] {message}{inputManager.Break}" : $"{message}{inputManager.Break}"
         };
 
         label.AddToClassList("console-text");
@@ -150,9 +146,12 @@ public class ConsoleManager : MonoBehaviour
 
     public void LogError(string message, bool printTimestamp = false)
     {
+        var uiColors = ColorProvider.Instance.UIColors;
+        var inputManager = InputManager.Instance;
+
         Label label = new()
         {
-            text = printTimestamp ? $"<color={ErrorColor}>[{DateTime.Now:HH:mm}] {message}</color>{ConsoleManager.Instance.Break}" : $"<color={ErrorColor}>{message}</color>{ConsoleManager.Instance.Break}"
+            text = printTimestamp ? $"<color={uiColors.ErrorColor}>[{DateTime.Now:HH:mm}] {message}</color>{inputManager.Break}" : $"<color={uiColors.ErrorColor}>{message}</color>{inputManager.Break}"
         };
 
         label.AddToClassList("console-text");
@@ -164,13 +163,13 @@ public class ConsoleManager : MonoBehaviour
     private void RegisterCommands()
     {
         var commandTypes = Assembly.GetExecutingAssembly().GetTypes()
-            .Where(type => typeof(IConsoleCommand).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
+            .Where(type => typeof(IRootCommand).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
 
         foreach (var type in commandTypes)
         {
             try
             {
-                IConsoleCommand commandInstance = (IConsoleCommand)Activator.CreateInstance(type);
+                ICommand commandInstance = (ICommand)Activator.CreateInstance(type);
                 RegisterCommand(commandInstance);
             }
             catch (Exception exception)
@@ -180,7 +179,7 @@ public class ConsoleManager : MonoBehaviour
         }
     }
 
-    private void RegisterCommand(IConsoleCommand command)
+    private void RegisterCommand(ICommand command)
     {
         if (!_commands.ContainsKey(command.Name.ToLower()))
             _commands.Add(command.Name.ToLower(), command);
@@ -202,7 +201,7 @@ public class ConsoleManager : MonoBehaviour
 
     public void SimulateCommand(string commandName, string[] args)
     {
-        if (_commands.TryGetValue(commandName.ToLower(), out IConsoleCommand command))
+        if (_commands.TryGetValue(commandName.ToLower(), out ICommand command))
         {
             try
             {
@@ -215,7 +214,7 @@ public class ConsoleManager : MonoBehaviour
         }
     }
 
-    public IEnumerable<IConsoleCommand> GetAllCommands() => _commands.Values.Distinct();
+    public IEnumerable<ICommand> GetAllCommands() => _commands.Values.Distinct();
 
-    public bool TryGetCommand(string commandName, out IConsoleCommand command) => _commands.TryGetValue(commandName.ToLower(), out command);
+    public bool TryGetCommand(string commandName, out ICommand command) => _commands.TryGetValue(commandName.ToLower(), out command);
 }

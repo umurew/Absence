@@ -7,27 +7,28 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
 
     [Space(10)]
-    [SerializeField] public bool sprintAllowed = false;
-    [SerializeField] public float sprintSpeed = 5f;
+    public bool sprintAllowed = false;
+    public float sprintSpeed = 5f;
 
-    [Space(10)]
-    [SerializeField] public bool crouchAllowed = false;
-    [SerializeField] public float crouchSpeed = 1f;
+    [Space(5)]
+    public bool crouchAllowed = false;
+    public float crouchSpeed = 1f;
 
-    [Space(10)]
-    [SerializeField] public bool jumpAllowed = false;
-    [SerializeField] public float jumpHeight = 1f;
+    [Space(5)]
+    public bool jumpAllowed = false;
+    public float jumpHeight = 1f;
 
-    [Space(10)]
-    [SerializeField] public float moveSpeed = 3f;
+    [Space(5)]
+    public float moveSpeed = 3f;
     [SerializeField] private float gravity = -9.81f;
 
-    [Space(10)]
-    [SerializeField] public bool noclip = false;
-    [SerializeField] public float noclipSpeed = 10f;
+    [Space(5)]
+    public bool noclip = false;
+    public float noclipSpeed = 10f;
 
     private CharacterController characterController;
     private Animator animator;
+
     private float verticalVelocity = 0f;
     private bool isCrouching = false;
 

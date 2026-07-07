@@ -1,0 +1,1 @@
+public interface IRootCommand : ICommand { }
