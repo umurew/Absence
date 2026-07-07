@@ -8,25 +8,23 @@ public class PlayerMovement : MonoBehaviour
 
     [Space(10)]
     [SerializeField] private bool sprintAllowed = false;
-    [SerializeField] private float sprintSpeed = 5f;
+    [SerializeField] public float sprintSpeed = 5f;
 
-    [Space(10)]
+    /*[Space(10)]
     [SerializeField] private bool crouchAllowed = false;
-    [SerializeField] private float crouchSpeed = 1f;
+    [SerializeField] public float crouchSpeed = 1f;*/
 
     [Space(10)]
     [SerializeField] private bool jumpAllowed = false;
-    [SerializeField] private float jumpHeight = 1f;
+    [SerializeField] public float jumpHeight = 1f;
 
     [Space(10)]
-    [SerializeField] private float moveSpeed = 3f;
+    [SerializeField] public float moveSpeed = 3f;
     [SerializeField] private float gravity = -9.81f;
 
     [Space(10)]
-    [SerializeField] private bool noclip = false;
-    [SerializeField] [Range(1f, 20f)] private float noclipSpeed = 10f;
-    [SerializeField] private float maximumNoclipSpeed = 20f;
-    [SerializeField] private float minimumNoclipSpeed = 1f;
+    [SerializeField] public bool noclip = false;
+    [SerializeField][Range(1f, 20f)] public float noclipSpeed = 10f;
 
     private CharacterController characterController;
     private Animator animator;
@@ -55,7 +53,7 @@ public class PlayerMovement : MonoBehaviour
         transform.rotation = noclip ? Quaternion.Euler(cameraEulerAngles.x, cameraEulerAngles.y, cameraEulerAngles.z) : Quaternion.Euler(0f, cameraEulerAngles.y, 0f);
 
         // Handle horizontal movement
-        Vector2 moveInput = InputManager.Instance.playerActions.Move.ReadValue<Vector2>();
+        Vector2 moveInput = InputManager.Instance.PlayerActions.Move.ReadValue<Vector2>();
 
         Vector3 forward = cameraTransform.forward;
         Vector3 right = cameraTransform.right;
@@ -75,6 +73,22 @@ public class PlayerMovement : MonoBehaviour
         if (noclip)
         {
             Vector3 noclipVelocity = noclipSpeed * Time.deltaTime * horizontalVelocity;
+
+            if (InputManager.Instance.PlayerActions.Jump.IsInProgress())
+            {
+                Vector3 up = cameraTransform.up;
+                up.Normalize();
+
+                noclipVelocity += noclipSpeed * Time.deltaTime * up;
+            }
+            else if (InputManager.Instance.PlayerActions.Crouch.IsInProgress())
+            {
+                Vector3 up = cameraTransform.up;
+                up.Normalize();
+
+                noclipVelocity -= noclipSpeed * Time.deltaTime * up;
+            }
+
             transform.position += noclipVelocity;
 
             return;
@@ -89,7 +103,7 @@ public class PlayerMovement : MonoBehaviour
                 verticalVelocity = -2f;
 
             // Handle jump input if enabled
-            if (jumpAllowed && InputManager.Instance.playerActions.Jump.WasPressedThisFrame())
+            if (jumpAllowed && InputManager.Instance.PlayerActions.Jump.WasPressedThisFrame())
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
@@ -101,7 +115,7 @@ public class PlayerMovement : MonoBehaviour
             verticalVelocity += gravity * Time.deltaTime;
 
         // Use sprint speed if allowed and sprint key is held, use move speed otherwise
-        bool isSprinting = sprintAllowed && InputManager.Instance.playerActions.Sprint.IsInProgress();
+        bool isSprinting = sprintAllowed && InputManager.Instance.PlayerActions.Sprint.IsInProgress();
         float horizontalSpeed = isSprinting ? sprintSpeed : moveSpeed;
 
         // Apply final velocity
@@ -126,13 +140,13 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool(isGroundedHash, characterController.isGrounded);
     }
 
-    private void ToggleNoclip()
+    public void ToggleNoclip()
     {
         noclip = !noclip;
 
         characterController.enabled = !noclip;
         animator.SetBool(noclipHash, noclip);
-        
+
         if (noclip)
             UpdateParameters(new(0, 0), false);
     }

@@ -42,7 +42,7 @@ public class PlayerInteraction : MonoBehaviour
         // Check if interactable exists
         PerformInteractionCheck();
 
-        if (currentInteractable != null && InputManager.Instance.playerActions.Interact.WasPressedThisFrame())
+        if (currentInteractable != null && InputManager.Instance.PlayerActions.Interact.WasPressedThisFrame())
         {
             currentInteractable.Interact();
             UpdatePrompt();
@@ -93,7 +93,7 @@ public class PlayerInteraction : MonoBehaviour
     private void UpdatePrompt()
     {
         promptLabel.text = currentInteractable.GetInteractPrompt();
-        promptHeaderLabel.text = $"Press {InputManager.Instance.playerActions.Interact.GetBindingDisplayString()} to Interact";
+        promptHeaderLabel.text = $"Press {InputManager.Instance.PlayerActions.Interact.GetBindingDisplayString()} to Interact";
     }
 
     private void OnDrawGizmosSelected()

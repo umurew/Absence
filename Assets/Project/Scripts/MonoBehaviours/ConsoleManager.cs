@@ -1,3 +1,9 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -6,11 +12,19 @@ public class ConsoleManager : MonoBehaviour
     public static ConsoleManager Instance { get; private set; }
 
     [SerializeField] private UIDocument consoleDocument;
+    [SerializeField] private CinemachineCamera firstPersonCamera;
 
+    private readonly Dictionary<string, IConsoleCommand> _commands = new();
     private VisualElement consoleContainer;
     private ScrollView consoleScrollView;
     private TextField consoleInputTextField;
     private bool consoleState = false;
+    public string NewLine => "\n";
+    public string Break => "\n\n";
+    public string ErrorColor => "#CC4141";
+    public string PrimaryColor => "#E1E1E1";
+    public string AccentColor => "#77BAFF";
+    public string GrayedColor => "#8493A3";
 
     private void Awake()
     {
@@ -27,39 +41,181 @@ public class ConsoleManager : MonoBehaviour
     private void Start()
     {
         VisualElement root = consoleDocument.rootVisualElement;
+
         consoleContainer = root.Q<VisualElement>("ConsoleContainer");
         consoleScrollView = root.Q<ScrollView>("ConsoleScrollView");
         consoleInputTextField = root.Q<TextField>("ConsoleInputTextField");
 
-        consoleDocument.enabled = false;
+        consoleContainer.style.visibility = Visibility.Hidden;
+        consoleInputTextField.RegisterCallback<KeyDownEvent>(ConsoleTextFieldSubmit, TrickleDown.TrickleDown);
+
+        RegisterCommands();
     }
 
     private void Update()
     {
-        if (InputManager.Instance.uiActions.Console.WasPressedThisFrame())
+        // Handle console toggling
+        if (InputManager.Instance.UiActions.ToggleConsole.WasPressedThisFrame())
         {
             consoleState = !consoleState;
-            consoleDocument.enabled = consoleState;
+            consoleContainer.style.visibility = consoleState ? Visibility.Visible : Visibility.Hidden;
 
             if (!consoleState)
-                InputManager.Instance.playerActions.Enable();
+            {
+                InputManager.Instance.PlayerActions.Enable();
+                InputManager.Instance.SetCursorState(true);
+                InputManager.Instance.SetCinemachineInputProviderState(firstPersonCamera, true);
+            }
             else
-                InputManager.Instance.playerActions.Disable();
-        }
+            {
+                InputManager.Instance.PlayerActions.Disable();
+                InputManager.Instance.SetCursorState(false);
+                InputManager.Instance.SetCinemachineInputProviderState(firstPersonCamera, false);
 
-        if (!consoleState)
-            return;
-
-        if (InputManager.Instance.uiActions.Enter.WasPressedThisFrame())
-        {
-            Debug.Log(consoleInputTextField.value);
-
-            Label textLabel = new();
-            textLabel.text = consoleInputTextField.value;
-            textLabel.AddToClassList("console-text");
-
-            consoleScrollView.Add(textLabel);
-            consoleInputTextField.value = string.Empty;
+                StartCoroutine(DelayFocus());
+            }
         }
     }
+
+    private void ConsoleTextFieldSubmit(KeyDownEvent e)
+    {
+        if (e.keyCode != KeyCode.Return)
+            return;
+
+        e.StopPropagation();
+
+        if (string.IsNullOrEmpty(consoleInputTextField.value))
+            return;
+
+        string inputString = consoleInputTextField.value;
+        Log(inputString, true);
+
+        string[] splitInput = inputString.Trim().Split(' ');
+        if (splitInput.Length > 0)
+        {
+            string commandName = splitInput[0];
+            string[] arguments = splitInput.Skip(1).ToArray();
+
+            if (_commands.TryGetValue(commandName.ToLower(), out IConsoleCommand command))
+            {
+                try
+                {
+                    command.Execute(arguments);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogError($"Unintended exception occured while executing command '{commandName}': {exception.Message}");
+                }
+            }
+            else
+            {
+                LogError($"Unknown command: \"{commandName}\". Type \"help\" to see a full list of commands.");
+            }
+        }
+
+        consoleInputTextField.value = string.Empty;
+        StartCoroutine(DelayFocus());
+    }
+
+    IEnumerator DelayFocus()
+    {
+        yield return null;
+        consoleInputTextField.Focus();
+    }
+
+    IEnumerator DelayAutoScrollToEnd()
+    {
+        yield return null;
+
+        VisualElement scrollViewContainer = consoleScrollView.contentContainer;
+        if (scrollViewContainer.childCount > 0)
+        {
+            VisualElement lastChild = scrollViewContainer[scrollViewContainer.childCount - 1];
+            consoleScrollView.ScrollTo(lastChild);
+        }
+    }
+
+    public void Log(string message, bool printTimestamp = false)
+    {
+        Label label = new()
+        {
+            text = printTimestamp ? $"[{DateTime.Now:HH:mm}] {message}{ConsoleManager.Instance.Break}" : $"{message}{ConsoleManager.Instance.Break}"
+        };
+
+        label.AddToClassList("console-text");
+
+        consoleScrollView.Add(label);
+        StartCoroutine(DelayAutoScrollToEnd());
+    }
+
+    public void LogError(string message, bool printTimestamp = false)
+    {
+        Label label = new()
+        {
+            text = printTimestamp ? $"<color={ErrorColor}>[{DateTime.Now:HH:mm}] {message}</color>{ConsoleManager.Instance.Break}" : $"<color={ErrorColor}>{message}</color>{ConsoleManager.Instance.Break}"
+        };
+
+        label.AddToClassList("console-text");
+
+        consoleScrollView.Add(label);
+        StartCoroutine(DelayAutoScrollToEnd());
+    }
+
+    private void RegisterCommands()
+    {
+        var commandTypes = Assembly.GetExecutingAssembly().GetTypes()
+            .Where(type => typeof(IConsoleCommand).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
+
+        foreach (var type in commandTypes)
+        {
+            try
+            {
+                IConsoleCommand commandInstance = (IConsoleCommand)Activator.CreateInstance(type);
+                RegisterCommand(commandInstance);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"Failed to auto-instantiate console command '{type.Name}': {exception.Message}");
+            }
+        }
+    }
+
+    private void RegisterCommand(IConsoleCommand command)
+    {
+        if (!_commands.ContainsKey(command.Name.ToLower()))
+            _commands.Add(command.Name.ToLower(), command);
+
+        if (command.Aliases != null && command.Aliases.Length != 0)
+        {
+            foreach (string alias in command.Aliases)
+            {
+                string cleanAlias = alias.Trim().ToLower();
+
+                if (string.IsNullOrEmpty(cleanAlias))
+                    continue;
+
+                if (!_commands.ContainsKey(cleanAlias))
+                    _commands.Add(cleanAlias, command);
+            }
+        }
+    }
+
+    public void SimulateCommand(string commandName, string[] args)
+    {
+        if (_commands.TryGetValue(commandName.ToLower(), out IConsoleCommand command))
+        {
+            try
+            {
+                command.Execute(args);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"Unintended exception occured while simulating command '{commandName}': {exception.Message}");
+            }
+        }
+    }
+
+    public IEnumerable<IConsoleCommand> GetAllCommands() => _commands.Values.Distinct();
+
+    public bool TryGetCommand(string commandName, out IConsoleCommand command) => _commands.TryGetValue(commandName.ToLower(), out command);
 }

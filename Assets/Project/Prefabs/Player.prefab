@@ -248,6 +248,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e394cff4f53a4184eb9d703ddbfaabd2, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 1220617400137173310, guid: e394cff4f53a4184eb9d703ddbfaabd2, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -398,9 +402,6 @@ MonoBehaviour:
   cameraTransform: {fileID: 0}
   raycastDistance: 3.5
   raycastRadius: 0.2
-  interactableLayer:
-    serializedVersion: 2
-    m_Bits: 256
   hudDocument: {fileID: 0}
 --- !u!114 &6940364792341634595
 MonoBehaviour:
@@ -421,6 +422,8 @@ MonoBehaviour:
   jumpHeight: 1
   moveSpeed: 3
   gravity: -9.81
+  noclip: 0
+  noclipSpeed: 10
 --- !u!95 &8354905626894655671
 Animator:
   serializedVersion: 7

@@ -1,18 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ui:UXML
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:ui="UnityEngine.UIElements"
-    xmlns:uie="UnityEditor.UIElements"
-    xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd">
-    <ui:Style src="Console_StyleSheet.uss" />
-    
-    <ui:VisualElement name="ConsoleContainer" class="console-container">
-        <ui:ScrollView name="ConsoleScrollView" class="console-scroll-view">
-            <ui:Label text="" class="console-text"/>
-        </ui:ScrollView>
-        <ui:VisualElement name="ConsoleInputContainer" class="console-input-container">
-            <ui:Label text=">" class="console-input-placeholder"/>
-            <ui:TextField text="" name="ConsoleInputTextField" class="console-input-textfield"/>
-        </ui:VisualElement>
-    </ui:VisualElement>
-</ui:UXML>
+<UXML xmlns="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Project/User%20Interface/Console_StyleSheet.uss?fileID=7433441132597879392&amp;guid=0ab5f60b9c9280e46a9154de9972e0ef&amp;type=3#Console_StyleSheet"/>
+    <VisualElement name="ConsoleContainer" class="console-container">
+        <ScrollView name="ConsoleScrollView" class="console-scroll-view">
+        </ScrollView>
+        <TextField name="ConsoleInputTextField" label="&gt;" Placeholder=".." value="" class="console-input-textfield"/>
+    </VisualElement>
+</UXML>
