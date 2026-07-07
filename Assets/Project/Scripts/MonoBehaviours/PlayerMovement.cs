@@ -7,15 +7,15 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
 
     [Space(10)]
-    [SerializeField] private bool sprintAllowed = false;
+    [SerializeField] public bool sprintAllowed = false;
     [SerializeField] public float sprintSpeed = 5f;
 
-    /*[Space(10)]
-    [SerializeField] private bool crouchAllowed = false;
-    [SerializeField] public float crouchSpeed = 1f;*/
+    [Space(10)]
+    [SerializeField] public bool crouchAllowed = false;
+    [SerializeField] public float crouchSpeed = 1f;
 
     [Space(10)]
-    [SerializeField] private bool jumpAllowed = false;
+    [SerializeField] public bool jumpAllowed = false;
     [SerializeField] public float jumpHeight = 1f;
 
     [Space(10)]
@@ -24,14 +24,17 @@ public class PlayerMovement : MonoBehaviour
 
     [Space(10)]
     [SerializeField] public bool noclip = false;
-    [SerializeField][Range(1f, 20f)] public float noclipSpeed = 10f;
+    [SerializeField] public float noclipSpeed = 10f;
 
     private CharacterController characterController;
     private Animator animator;
     private float verticalVelocity = 0f;
+    private bool isCrouching = false;
+
     private readonly int moveInputXHash = Animator.StringToHash("MoveInputX");
     private readonly int moveInputYHash = Animator.StringToHash("MoveInputY");
     private readonly int isGroundedHash = Animator.StringToHash("IsGrounded");
+    private readonly int crouchingHash = Animator.StringToHash("Crouching");
     private readonly int noclipHash = Animator.StringToHash("Noclip");
     private readonly int jumpHash = Animator.StringToHash("Jump");
 
@@ -102,6 +105,22 @@ public class PlayerMovement : MonoBehaviour
             if (verticalVelocity < 0f)
                 verticalVelocity = -2f;
 
+            // Handle crouch input if enabled
+            if (crouchAllowed && InputManager.Instance.PlayerActions.Crouch.IsInProgress())
+            {
+                isCrouching = true;
+
+                characterController.center = new Vector3(0f, 0.75f, 0f);
+                characterController.height = 1.3f;
+            }
+            else
+            {
+                isCrouching = false;
+
+                characterController.center = new Vector3(0f, 1.1f, 0f);
+                characterController.height = 2f;
+            }
+
             // Handle jump input if enabled
             if (jumpAllowed && InputManager.Instance.PlayerActions.Jump.WasPressedThisFrame())
             {
@@ -116,16 +135,22 @@ public class PlayerMovement : MonoBehaviour
 
         // Use sprint speed if allowed and sprint key is held, use move speed otherwise
         bool isSprinting = sprintAllowed && InputManager.Instance.PlayerActions.Sprint.IsInProgress();
-        float horizontalSpeed = isSprinting ? sprintSpeed : moveSpeed;
+        float horizontalSpeed = true switch
+        {
+            _ when noclip => noclipSpeed,
+            _ when isSprinting => sprintSpeed,
+            _ when isCrouching => crouchSpeed,
+            _ => moveSpeed
+        };
 
         // Apply final velocity
         Vector3 finalVelocity = horizontalSpeed * horizontalVelocity + Vector3.up * verticalVelocity;
         characterController.Move(finalVelocity * Time.deltaTime);
 
-        UpdateParameters(moveInput, isSprinting);
+        UpdateParameters(moveInput, isSprinting, isCrouching);
     }
 
-    private void UpdateParameters(Vector2 moveInput, bool isSprinting)
+    private void UpdateParameters(Vector2 moveInput, bool isSprinting, bool isCrouching)
     {
         if (animator == null)
         {
@@ -138,6 +163,18 @@ public class PlayerMovement : MonoBehaviour
         animator.SetFloat(moveInputYHash, moveInput.y * modifier, 0.1f, Time.deltaTime);
 
         animator.SetBool(isGroundedHash, characterController.isGrounded);
+        animator.SetBool(crouchingHash, isCrouching);
+
+        int crouchLayerIndex = animator.GetLayerIndex("Crouch Layer");
+
+        if (crouchLayerIndex != -1)
+        {
+            float targetWeight = isCrouching ? 1f : 0f;
+            float currentWeight = animator.GetLayerWeight(crouchLayerIndex);
+
+            float newWeight = Mathf.MoveTowards(currentWeight, targetWeight, Time.deltaTime * 5f);
+            animator.SetLayerWeight(crouchLayerIndex, newWeight);
+        }
     }
 
     public void ToggleNoclip()
@@ -148,6 +185,6 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool(noclipHash, noclip);
 
         if (noclip)
-            UpdateParameters(new(0, 0), false);
+            UpdateParameters(new(0, 0), false, false);
     }
 }

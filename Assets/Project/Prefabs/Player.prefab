@@ -216,6 +216,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: -259972160606440404, guid: e394cff4f53a4184eb9d703ddbfaabd2, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -257034432913791678, guid: e394cff4f53a4184eb9d703ddbfaabd2, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -386,7 +390,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Center: {x: 0, y: 1.1, z: 0}
 --- !u!114 &8251973346407726149
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,6 +422,8 @@ MonoBehaviour:
   cameraTransform: {fileID: 0}
   sprintAllowed: 1
   sprintSpeed: 5
+  crouchAllowed: 1
+  crouchSpeed: 1
   jumpAllowed: 1
   jumpHeight: 1
   moveSpeed: 3
