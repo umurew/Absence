@@ -19,7 +19,6 @@ public class Door : MonoBehaviour, IInteractable
 
     private void Start()
     {
-        baseCollider = GetComponent<Collider>();
         targetRotation = Quaternion.Euler(0f, closedAngle, 0f);
     }
 
@@ -65,17 +64,20 @@ public class Door : MonoBehaviour, IInteractable
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = ColorProvider.Instance.GizmoColors.IInteractableCollider;
-        Gizmos.DrawCube(baseCollider.bounds.center, baseCollider.bounds.size);
+        if (baseCollider == null)
+            baseCollider = GetComponent<Collider>();
+
+        Gizmos.color = ColorProvider.GizmoColors.IInteractableCollider;
+        Gizmos.DrawWireCube(baseCollider.bounds.center, baseCollider.bounds.size);
 
         Vector3 position = transform.position;
 
-        Gizmos.color = ColorProvider.Instance.GizmoColors.DoorAxis;
+        Gizmos.color = ColorProvider.GizmoColors.DoorAxis;
         Vector3 axisStart = position - transform.up * 0.25f;
         Vector3 axisEnd = position + transform.up * 2.5f;
         Gizmos.DrawLine(axisStart, axisEnd);
 
-        Gizmos.color = ColorProvider.Instance.GizmoColors.DoorArrow;
+        Gizmos.color = ColorProvider.GizmoColors.DoorArrow;
         Vector3 arrowBase = position + transform.right * 1.125f + transform.up * 1.125f;
         Vector3 arrowTip = arrowBase + transform.forward * 0.2f;
 
@@ -103,7 +105,7 @@ public class Door : MonoBehaviour, IInteractable
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Bold
             };
-            style.normal.textColor = ColorProvider.Instance.GizmoColors.HandleLabel;
+            style.normal.textColor = ColorProvider.GizmoColors.HandleLabel;
 
             UnityEditor.Handles.Label(labelPosition, locked ? "LOCKED" : "UNLOCKED", style);
         }

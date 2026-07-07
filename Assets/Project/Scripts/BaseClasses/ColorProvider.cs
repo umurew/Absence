@@ -1,22 +1,9 @@
 ﻿using UnityEngine;
 
-public class ColorProvider : MonoBehaviour
+public static class ColorProvider
 {
-    public static ColorProvider Instance { get; private set; }
-    public GizmoColorsClass GizmoColors { get; } = new();
-    public UIColorsClass UIColors { get; } = new();
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-    }
+    public static GizmoColorsClass GizmoColors { get; } = new();
+    public static UIColorsClass UIColors { get; } = new();
 
     public class GizmoColorsClass
     {

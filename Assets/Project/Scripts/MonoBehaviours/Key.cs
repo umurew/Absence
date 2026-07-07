@@ -6,8 +6,6 @@ public class Key : MonoBehaviour, IInteractable
     [SerializeField] private StatesBlackboard blackboard;
     private Collider baseCollider;
 
-    private void Start() => baseCollider = GetComponent<Collider>();
-
     public void Interact()
     {
         Destroy(gameObject);
@@ -18,7 +16,10 @@ public class Key : MonoBehaviour, IInteractable
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = ColorProvider.Instance.GizmoColors.IInteractableCollider;
-        Gizmos.DrawCube(baseCollider.bounds.center, baseCollider.bounds.size);
+        if (baseCollider == null)
+            baseCollider = GetComponent<Collider>();
+
+        Gizmos.color = ColorProvider.GizmoColors.IInteractableCollider;
+        Gizmos.DrawWireCube(baseCollider.bounds.center, baseCollider.bounds.size);
     }
 }

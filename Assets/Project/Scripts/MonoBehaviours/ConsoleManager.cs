@@ -146,7 +146,7 @@ public class ConsoleManager : MonoBehaviour
 
     public void LogError(string message, bool printTimestamp = false)
     {
-        var uiColors = ColorProvider.Instance.UIColors;
+        var uiColors = ColorProvider.UIColors;
         var inputManager = InputManager.Instance;
 
         Label label = new()

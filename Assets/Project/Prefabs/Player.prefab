@@ -405,7 +405,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
   cameraTransform: {fileID: 0}
   raycastDistance: 3.5
-  raycastRadius: 0.2
+  raycastRadius: 0.05
   hudDocument: {fileID: 0}
 --- !u!114 &6940364792341634595
 MonoBehaviour:

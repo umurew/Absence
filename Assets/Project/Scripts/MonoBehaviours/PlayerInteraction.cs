@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
@@ -11,12 +12,13 @@ public class PlayerInteraction : MonoBehaviour
     [Description("Reach distance which determines maximum raycast lenght.")]
     [SerializeField] private float raycastDistance = 3.5f;
     [Description("Sphere radius which determines the raycast sphere's radius.")]
-    [SerializeField] private float raycastRadius = 0.2f;
+    [SerializeField] private float raycastRadius = 0.02f;
 
     [Header("UI References")]
     [SerializeField] private UIDocument hudDocument;
 
     private IInteractable currentInteractable;
+    private RaycastHit currentHit;
     private VisualElement promptContanier;
     private Label promptLabel;
     private Label promptHeaderLabel;
@@ -55,6 +57,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (Physics.SphereCast(ray, raycastRadius, out RaycastHit raycastHit, raycastDistance))
         {
+            currentHit = raycastHit;
             IInteractable iinteractable = raycastHit.collider.GetComponent<IInteractable>();
 
             if (iinteractable is not null)
@@ -103,6 +106,6 @@ public class PlayerInteraction : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawRay(cameraTransform.position, cameraTransform.forward * raycastDistance);
-        Gizmos.DrawWireSphere(cameraTransform.position + (cameraTransform.forward * raycastDistance), raycastRadius);
+        Gizmos.DrawWireSphere(cameraTransform.position + (cameraTransform.forward * currentHit.distance), raycastRadius);
     }
 }

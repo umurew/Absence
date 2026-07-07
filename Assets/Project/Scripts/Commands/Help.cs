@@ -36,7 +36,7 @@ public class Help : IRootCommand
 
     private void AppendCommandDetails(StringBuilder stringBuilder, ICommand command, int indentLevel)
     {
-        var uiColors = ColorProvider.Instance.UIColors;
+        var uiColors = ColorProvider.UIColors;
         var inputManager = InputManager.Instance;
 
         string tabs = string.Concat(Enumerable.Repeat(inputManager.Tab, indentLevel));
