@@ -188,10 +188,7 @@ public class ConsoleManager : MonoBehaviour
             {
                 string[] arguments = endsWithSpace
                                 ? splitInput.Skip(1).ToArray()
-                                : splitInput.Skip(1).Take(splitInput.Length - 2).Concat(new[] { "" }).ToArray();
-
-                if (!endsWithSpace)
-                    arguments = splitInput.Skip(1).Take(splitInput.Length - 2).ToArray();
+                                : splitInput.Skip(1).Take(splitInput.Length - 2).ToArray();
 
                 List<string> suggestions = command.GetSuggestions(arguments);
 

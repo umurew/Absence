@@ -1,11 +1,11 @@
-<Solution>
+﻿<Solution>
   <Project Path="MerryYellow.CodeAssist.Editor.csproj" />
   <Project Path="InterfacesAssembly.csproj" />
   <Project Path="ConsoleAssembly.csproj" />
   <Project Path="ColorsAssembly.csproj" />
+  <Project Path="ScriptableObjectsAssembly.csproj" />
   <Project Path="PlayerAssembly.csproj" />
   <Project Path="InputAssembly.csproj" />
   <Project Path="InteractablesAssembly.csproj" />
   <Project Path="LightningAssembly.csproj" />
-  <Project Path="EventSystemAssembly.csproj" />
 </Solution>
