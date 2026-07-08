@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text;
+using System.Collections.Generic;
 
 public class Help : IRootCommand
 {
@@ -59,5 +60,35 @@ public class Help : IRootCommand
                     AppendCommandDetails(stringBuilder, prop, indentLevel + 1);
             }
         }
+    }
+
+    public List<string> GetSuggestions(string[] args)
+    {
+        if (args == null || args.Length > 1)
+            return null;
+
+        string input = args.Length == 1 ? args[0].ToLower() : string.Empty;
+
+        List<string> suggestions = new();
+        IEnumerable<ICommand> commands = ConsoleManager.Instance.GetAllCommands();
+
+        foreach (ICommand command in commands)
+        {
+            string loweredName = command.Name.ToLower();
+            if (loweredName.StartsWith(input))
+                suggestions.Add(loweredName);
+
+            if (command.Aliases != null && command.Aliases.Length > 0)
+            {
+                foreach (string alias in command.Aliases)
+                {
+                    string loweredAlias = alias.ToLower();
+                    if (loweredAlias.StartsWith(input))
+                        suggestions.Add(loweredAlias);
+                }
+            }
+        }
+
+        return suggestions.Count > 0 ? suggestions : null;
     }
 }

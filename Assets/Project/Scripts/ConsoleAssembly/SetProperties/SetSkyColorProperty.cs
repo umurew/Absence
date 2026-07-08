@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class SetSkyColorProperty : ICommand
 {
@@ -35,5 +37,19 @@ public class SetSkyColorProperty : ICommand
         }
 
         LightningManager.Instance.SetEnvironmentBackgroundColor(color);
+    }
+
+    public List<string> GetSuggestions(string[] args)
+    {
+        /// In case user did not write <value> or has written <value>
+        if (args == null || args.Length > 1)
+            return null;
+
+        /// In case user is writing <value>
+        string input = args.Length == 1 ? args[0].ToLower() : string.Empty;
+        var colorKeys = LightningManager.Instance.GetAvailableColorKeys();
+
+        var matches = colorKeys.Where(color => color.ToLower().StartsWith(input)).ToList();
+        return matches.Count > 0 ? matches : null;
     }
 }

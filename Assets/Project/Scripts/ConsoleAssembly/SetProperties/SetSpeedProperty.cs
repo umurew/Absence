@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class SetSpeedProperty : ICommand
@@ -64,5 +65,19 @@ public class SetSpeedProperty : ICommand
                 playerMovement.noclipSpeed = value;
                 break;
         }
+    }
+
+    public List<string> GetSuggestions(string[] args)
+    {
+        /// In case user did not write <type> or is writing <value>
+        if (args == null || args.Length > 1)
+            return null;
+
+        /// In case user is writing <type>
+        string input = args.Length == 1 ? args[0].ToLower() : string.Empty;
+        List<string> types = new() { "move", "sprint", "crouch", "noclip" };
+
+        var matches = types.Where(type => type.StartsWith(input)).ToList();
+        return matches.Count > 0 ? matches : null;
     }
 }

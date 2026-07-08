@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public interface ICommand
 {
     string Name { get; }
@@ -5,4 +7,5 @@ public interface ICommand
     string Description { get; }
     string Syntax { get; }
     void Execute(string[] args);
+    List<string> GetSuggestions(string[] args);
 }

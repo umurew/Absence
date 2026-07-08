@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class NPCWanderProperty : ICommand
@@ -50,5 +51,10 @@ public class NPCWanderProperty : ICommand
             return;
 
         npcMovement.wanderAround = value;
+    }
+
+    public List<string> GetSuggestions(string[] args)
+    {
+        return null;
     }
 }

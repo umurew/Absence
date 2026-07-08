@@ -21,9 +21,11 @@ public abstract class CommandWithProperties : ICommandWithProperties
 
     protected void RegisterProperty(ICommand property)
     {
+        // Handle names
         if (!_subProperties.ContainsKey(property.Name.ToLower()))
             _subProperties.Add(property.Name.ToLower(), property);
 
+        // Handle aliases
         if (property.Aliases != null)
         {
             foreach (string alias in property.Aliases)
@@ -37,6 +39,7 @@ public abstract class CommandWithProperties : ICommandWithProperties
 
     public virtual void Execute(string[] args)
     {
+        // Handle null <property> argument
         if (args == null || args.Length == 0)
         {
             ConsoleBridge.Log($"Syntax: <i>{Syntax}</i>");
@@ -44,8 +47,8 @@ public abstract class CommandWithProperties : ICommandWithProperties
             return;
         }
 
+        // Handle executing property
         string targetProperty = args[0].ToLower();
-
         if (_subProperties.TryGetValue(targetProperty, out ICommand property))
         {
             string[] subArgs = args.Skip(1).ToArray();
@@ -53,5 +56,46 @@ public abstract class CommandWithProperties : ICommandWithProperties
         }
         else
             ConsoleBridge.LogError($"Unknown property: \"{args[0]}\". Type \"help {Name.ToLower()}\" or enter \"{Name.ToLower()}\" for options.");
+    }
+
+    public virtual List<string> GetSuggestions(string[] args)
+    {
+        /// Return every property's base name if nothing is written
+        if (args == null || args.Length == 0)
+            return GetUniqueProperties().Select(property => property.Name.ToLower()).ToList();
+
+        string currentInput = args[0].ToLower();
+
+        /// In case user has written a property name or alias, for example: "set npc"
+        if (_subProperties.TryGetValue(currentInput, out ICommand directMatchCommand))
+        {
+            string[] subArgs = args.Skip(1).ToArray();
+            return directMatchCommand.GetSuggestions(subArgs);
+        }
+
+        /// In case user is writing a property name or alias, for example: "set n"
+        if (args.Length == 1)
+        {
+            List<string> suggestions = new();
+
+            /// Since property registry also adds aliases to _subProperties, we don't search for them
+            foreach (var pair in _subProperties)
+            {
+                if (pair.Key.StartsWith(currentInput))
+                    suggestions.Add(pair.Key);
+            }
+
+            return suggestions.Count > 0 ? suggestions : null;
+        }
+
+        /// In case user has written the property name or alias correct and is now writing sub-properties, for example: "set npc wa"
+        if (_subProperties.TryGetValue(currentInput, out ICommand nextCommand))
+        {
+            string[] subArgs = args.Skip(1).ToArray();
+            return nextCommand.GetSuggestions(subArgs);
+        }
+
+        /// Return null in case none of above
+        return null;
     }
 }

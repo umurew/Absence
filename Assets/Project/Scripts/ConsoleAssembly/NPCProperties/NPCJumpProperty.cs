@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class NPCJumpProperty : ICommand
@@ -21,5 +22,10 @@ public class NPCJumpProperty : ICommand
             return;
 
         npcMovement.Jump();
+    }
+
+    public List<string> GetSuggestions(string[] args)
+    {
+        return null;
     }
 }

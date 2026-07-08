@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Noclip : IRootCommand
@@ -6,6 +7,7 @@ public class Noclip : IRootCommand
     public string[] Aliases => new string[] { };
     public string Description => "Toggles clipping through.";
     public string Syntax => "noclip";
+
     public void Execute(string[] args)
     {
         GameObject player = GameObject.FindWithTag("Player");
@@ -19,5 +21,10 @@ public class Noclip : IRootCommand
 
         PlayerMovement playerMovement = player.GetComponent<PlayerMovement>();
         playerMovement.ToggleNoclip();
+    }
+
+    public List<string> GetSuggestions(string[] args)
+    {
+        return null;
     }
 }

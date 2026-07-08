@@ -7,7 +7,7 @@ public class InputManager : MonoBehaviour
 
     private InputActions InputActions { get; set; }
     public InputActions.PlayerActions PlayerActions { get; private set; }
-    public InputActions.UiActions UiActions { get; private set; }
+    public InputActions.UIActions UiActions { get; private set; }
 
     public string NewLine = "\n";
     public string Break = "\n\n";
