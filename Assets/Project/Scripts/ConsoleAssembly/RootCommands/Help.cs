@@ -48,7 +48,7 @@ public class Help : IRootCommand
         int fontSize = indentLevel == 0 ? 14 : 13;
 
         stringBuilder.Append(tabs).Append($"<size={fontSize}><color={uiColors.AccentColor}><b>{command.Name}</b><i>{aliasText}</i></color></size>").Append(inputManager.NewLine);
-        stringBuilder.Append(tabs).Append($"<color={uiColors.PrimaryColor}><i>{command.Syntax}</i></color>").Append(inputManager.Break);
+        stringBuilder.Append(tabs).Append($"<color={uiColors.PrimaryColor}><i>{command.Syntax}</i></color>").Append(inputManager.NewLine);
         stringBuilder.Append(tabs).Append($"<color={uiColors.GrayedColor}>{command.Description}</color>").Append(inputManager.Break);
 
         if (command is ICommandWithProperties compositeCommand)

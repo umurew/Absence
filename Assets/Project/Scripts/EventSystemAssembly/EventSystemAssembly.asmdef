@@ -1,5 +1,5 @@
 {
-    "name": "CoreAssembly",
+    "name": "EventSystemAssembly",
     "rootNamespace": "",
     "references": [
         "GUID:924473546b2a9764faf6142d0ad3ad6a",

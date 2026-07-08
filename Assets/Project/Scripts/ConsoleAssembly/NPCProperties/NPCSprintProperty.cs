@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NPCWanderProperty : ICommand
+public class NPCSprintProperty : ICommand
 {
-    public string Name => "Wander";
-    public string[] Aliases => new string[] { };
-    public string Description => "Set if NPC is wandering.";
-    public string Syntax => "set npc wander <value>";
+    public string Name => "Sprint";
+    public string[] Aliases => new string[] { "Run" };
+    public string Description => "Set if NPC is sprinting.";
+    public string Syntax => "set npc sprint <value>";
 
     public void Execute(string[] args)
     {
@@ -50,7 +50,7 @@ public class NPCWanderProperty : ICommand
         if (!npc.TryGetComponent<NPCMovement>(out NPCMovement npcMovement))
             return;
 
-        npcMovement.isWandering = value;
+        npcMovement.isSprinting = value;
     }
 
     public List<string> GetSuggestions(string[] args)

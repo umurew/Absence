@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NPCWanderProperty : ICommand
+public class NPCCrouchProperty : ICommand
 {
-    public string Name => "Wander";
+    public string Name => "Crouch";
     public string[] Aliases => new string[] { };
-    public string Description => "Set if NPC is wandering.";
-    public string Syntax => "set npc wander <value>";
+    public string Description => "Set if NPC is crouching.";
+    public string Syntax => "set npc crouch <value>";
 
     public void Execute(string[] args)
     {
@@ -50,7 +50,7 @@ public class NPCWanderProperty : ICommand
         if (!npc.TryGetComponent<NPCMovement>(out NPCMovement npcMovement))
             return;
 
-        npcMovement.isWandering = value;
+        npcMovement.isCrouching = value;
     }
 
     public List<string> GetSuggestions(string[] args)

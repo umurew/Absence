@@ -125,6 +125,7 @@ public class PlayerMovement : MonoBehaviour
             // Handle jump input if enabled
             if (jumpAllowed && InputManager.Instance.PlayerActions.Jump.WasPressedThisFrame())
             {
+                isCrouching = false;
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
                 if (animator != null)

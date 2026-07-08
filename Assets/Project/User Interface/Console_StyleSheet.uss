@@ -9,7 +9,7 @@
 
 .console-container
 {
-	height: 40%;
+	height: 70%;
 	background-color: rgba(30, 30, 45, 0.5);
 	border-bottom-width: 2px;
 	border-bottom-color: rgba(255, 130, 0, 0.4);

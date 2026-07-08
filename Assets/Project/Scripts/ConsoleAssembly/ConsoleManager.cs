@@ -55,7 +55,7 @@ public class ConsoleManager : MonoBehaviour
         consoleInputTextField = root.Q<TextField>("ConsoleInputTextField");
 
         consoleContainer.style.visibility = Visibility.Hidden;
-        consoleInputTextField.RegisterCallback<KeyDownEvent>(ConsoleTextFieldSubmit, TrickleDown.TrickleDown);
+        consoleInputTextField.RegisterCallback<KeyDownEvent>(OnKeyDownEvent, TrickleDown.TrickleDown);
 
         RegisterCommands();
     }
@@ -94,7 +94,7 @@ public class ConsoleManager : MonoBehaviour
         }
     }
 
-    private void ConsoleTextFieldSubmit(KeyDownEvent e)
+    private void OnKeyDownEvent(KeyDownEvent e)
     {
         if (e.keyCode == KeyCode.Return)
         {
@@ -220,7 +220,7 @@ public class ConsoleManager : MonoBehaviour
                     }
                     else
                     {
-                        splitInput[splitInput.Length - 1] = completedArg;
+                        splitInput[^1] = completedArg;
                         consoleInputTextField.value = string.Join(" ", splitInput);
                     }
 
@@ -341,4 +341,6 @@ public class ConsoleManager : MonoBehaviour
     public IEnumerable<ICommand> GetAllCommands() => _commands.Values.Distinct();
 
     public bool TryGetCommand(string commandName, out ICommand command) => _commands.TryGetValue(commandName.ToLower(), out command);
+
+    public void ClearConsole() => consoleScrollView.Clear();
 }

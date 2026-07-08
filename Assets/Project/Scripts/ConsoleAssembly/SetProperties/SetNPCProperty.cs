@@ -7,7 +7,9 @@
 
     public SetNPCProperty()
     {
-        RegisterProperty(new NPCWanderProperty());
+        RegisterProperty(new NPCCrouchProperty());
         RegisterProperty(new NPCJumpProperty());
+        RegisterProperty(new NPCSprintProperty());
+        RegisterProperty(new NPCWanderProperty());
     }
 }

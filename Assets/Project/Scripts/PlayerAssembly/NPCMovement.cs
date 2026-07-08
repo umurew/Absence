@@ -7,9 +7,9 @@ using UnityEngine.AI;
 public class NPCMovement : MonoBehaviour
 {
     [Header("Behaviour")]
-    public bool wanderAround = false;
-    [SerializeField] private float wanderInterval = 5f;
-    [SerializeField] private float wanderRadius = 5f;
+    public bool isWandering = false;
+    public float wanderInterval = 5f;
+    public float wanderRadius = 5f;
 
     [Space(10)]
     public bool isSprinting = false;
@@ -52,7 +52,7 @@ public class NPCMovement : MonoBehaviour
     private void Update()
     {
         // Handle timer
-        if (wanderAround)
+        if (isWandering)
         {
             timer += Time.deltaTime;
             if (timer >= wanderInterval)
