@@ -1,0 +1,18 @@
+{
+    "name": "InteractablesAssembly",
+    "rootNamespace": "",
+    "references": [
+        "GUID:924473546b2a9764faf6142d0ad3ad6a",
+        "GUID:79b4cf9ba3f30be498ef1256f47f8af8",
+        "GUID:f33b63120b775624b8b1c4e20ce645ca"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

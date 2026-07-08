@@ -1,5 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+
+public interface ICommandWithProperties : ICommand
+{
+    IEnumerable<ICommand> GetUniqueProperties();
+}
 
 public abstract class CommandWithProperties : ICommandWithProperties
 {
@@ -34,8 +39,8 @@ public abstract class CommandWithProperties : ICommandWithProperties
     {
         if (args == null || args.Length == 0)
         {
-            ConsoleManager.Instance.Log($"Syntax: <i>{Syntax}</i>");
-            ConsoleManager.Instance.LogError($"Missing argument: <property>. Expected: {PropertiesDisplayText}");
+            ConsoleBridge.Log($"Syntax: <i>{Syntax}</i>");
+            ConsoleBridge.LogError($"Missing argument: <property>. Expected: {PropertiesDisplayText}");
             return;
         }
 
@@ -47,6 +52,6 @@ public abstract class CommandWithProperties : ICommandWithProperties
             property.Execute(subArgs);
         }
         else
-            ConsoleManager.Instance.LogError($"Unknown property: \"{args[0]}\". Type \"help {Name.ToLower()}\" or enter \"{Name.ToLower()}\" for options.");
+            ConsoleBridge.LogError($"Unknown property: \"{args[0]}\". Type \"help {Name.ToLower()}\" or enter \"{Name.ToLower()}\" for options.");
     }
 }

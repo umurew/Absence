@@ -32,6 +32,18 @@ public class ConsoleManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void OnEnable()
+    {
+        ConsoleBridge.OnLog += Log;
+        ConsoleBridge.OnLogError += LogError;
+    }
+
+    private void OnDisable()
+    {
+        ConsoleBridge.OnLog -= Log;
+        ConsoleBridge.OnLogError -= LogError;
+    }
+
     private void Start()
     {
         VisualElement root = consoleDocument.rootVisualElement;
@@ -98,7 +110,7 @@ public class ConsoleManager : MonoBehaviour
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogError($"Unintended exception occured while executing command '{commandName}': {exception.Message}");
+                    Debug.LogError($"Exception occured while executing command '{commandName}': {exception.Message}");
                 }
             }
             else

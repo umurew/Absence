@@ -13,7 +13,7 @@ public class Noclip : IRootCommand
         if (player == null)
         {
             Debug.LogError($"Could not find any GameObject with tag: \"Player\"");
-            ConsoleManager.Instance.LogError($"Encountered unexpected state while executing command.");
+            ConsoleBridge.LogError($"Encountered unexpected state while executing command.");
             return;
         }
 
