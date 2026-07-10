@@ -6,26 +6,32 @@ using UnityEngine;
 public class Jump : ICommand
 {
     public string Name => "Jump";
-    public string[] Aliases => new string[] { };
-    public string Description => "Trigger NPC to jump if available.";
+    public string[] Aliases => new string[] {  };
+    public string Description => "Set if NPC jump FUCK YOU.";
     public string Syntax => $"{Name.ToLower()} {string.Join(' ', Arguments.Select(a => a.DisplayString()))}";
     public ArgumentDescriptor[] Arguments => Array.Empty<ArgumentDescriptor>();
 
     public void Execute(string[] args)
     {
-        GameObject npc = GameObject.FindGameObjectWithTag("NPC");
+        GameObject[] npcs = GameObject.FindGameObjectsWithTag("NPC");
 
-        if (npc == null)
+        if (npcs.Length == 0)
         {
-            Debug.LogError("Could not find any GameObject with tag: \"NPC\"");
+            ConsoleManager.Instance.Log("Could not find any GameObject with tag: \"NPC\"");
             return;
         }
 
-        if (!npc.TryGetComponent<NPCMovement>(out NPCMovement npcMovement))
-            return;
+        foreach (GameObject npc in npcs)
+        {
+            if (!npc.TryGetComponent<NPCMovement>(out NPCMovement npcMovement))
+                return;
 
-        npcMovement.Jump();
+            npcMovement.blackboard.RequestJump();
+        }
     }
 
-    public List<string> GetSuggestions(string[] args) => null;
+    public List<string> GetSuggestions(string[] args)
+    {
+        return null;
+    }
 }

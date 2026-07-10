@@ -6,7 +6,7 @@ public class Sprint : ICommand
 {
     public string Name => "Sprint";
     public string[] Aliases => new string[] { "Run" };
-    public string Description => "Set if NPC is sprinting.";
+    public string Description => "Set if NPCs are sprinting.";
     public string Syntax => $"{Name.ToLower()} {string.Join(' ', Arguments.Select(a => a.DisplayString()))}";
     public ArgumentDescriptor[] Arguments => new ArgumentDescriptor[]
     {
@@ -29,18 +29,21 @@ public class Sprint : ICommand
             return;
         }
 
-        GameObject npc = GameObject.FindGameObjectWithTag("NPC");
+        GameObject[] npcs = GameObject.FindGameObjectsWithTag("NPC");
 
-        if (npc == null)
+        if (npcs.Length == 0)
         {
-            Debug.LogError("Could not find any GameObject with tag: \"NPC\"");
+            ConsoleManager.Instance.Log("Could not find any GameObject with tag: \"NPC\"");
             return;
         }
 
-        if (!npc.TryGetComponent<NPCMovement>(out NPCMovement npcMovement))
-            return;
+        foreach (GameObject npc in npcs)
+        {
+            if (!npc.TryGetComponent<NPCMovement>(out NPCMovement npcMovement))
+                return;
 
-        npcMovement.isSprinting = value;
+            npcMovement.blackboard.SetSprinting(value);
+        }
     }
 
     public List<string> GetSuggestions(string[] args)

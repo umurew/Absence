@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "StatesBlackboard", menuName = "Scriptable Objects/StatesBlackboard")]
+[CreateAssetMenu(fileName = "StatesBlackboard", menuName = "Scriptable Objects/States Blackboard")]
 public class StatesBlackboard : ScriptableObject
 {
     private Dictionary<string, object> StateDictionary = new();

@@ -72,9 +72,6 @@ PrefabInstance:
       insertIndex: 1
       addedObject: {fileID: 2880311397858278624}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e394cff4f53a4184eb9d703ddbfaabd2, type: 3}
-      insertIndex: 2
-      addedObject: {fileID: 7881569914718378059}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e394cff4f53a4184eb9d703ddbfaabd2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6130097591508009518}
   m_SourcePrefab: {fileID: 100100000, guid: e394cff4f53a4184eb9d703ddbfaabd2, type: 3}
@@ -108,28 +105,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1, z: 0}
---- !u!195 &7881569914718378059
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7517256414521802500}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!114 &6130097591508009518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142,13 +117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 916230952cc77934e877afeb772e46aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  wanderAround: 0
-  wanderInterval: 5
-  wanderRadius: 10
-  isSprinting: 0
-  sprintSpeed: 5
-  isCrouching: 0
-  crouchSpeed: 1
-  jumpHeight: 3
-  moveSpeed: 3
+  rotationSpeed: 8
   gravity: -9.81
+  jumpHeight: 3
+  npcBlackboard: {fileID: 0}

@@ -7,8 +7,8 @@
     public NPC()
     {
         RegisterSubCommand(new Crouch());
-        RegisterSubCommand(new Jump());
         RegisterSubCommand(new Sprint());
-        RegisterSubCommand(new Wander());
+        RegisterSubCommand(new Move());
+        RegisterSubCommand(new Jump());
     }
 }

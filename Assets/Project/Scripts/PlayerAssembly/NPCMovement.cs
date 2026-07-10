@@ -1,37 +1,24 @@
+using System.ComponentModel;
 using UnityEngine;
-using UnityEngine.AI;
 
-[RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(CharacterController))]
 public class NPCMovement : MonoBehaviour
 {
-    [Header("Behaviour")]
-    public bool isWandering = false;
-    public float wanderInterval = 5f;
-    public float wanderRadius = 5f;
-
-    [Space(10)]
-    public bool isSprinting = false;
-    public float sprintSpeed = 5f;
-
-    [Space(5)]
-    public bool isCrouching = false;
-    public float crouchSpeed = 1f;
-
-    [Space(5)]
-    private bool isJumping = false;
-    public float jumpHeight = 1f;
-
-    [Space(5)]
-    public float moveSpeed = 3f;
+    [Header("Configuration")]
+    [SerializeField] private float rotationSpeed = 8f;
     [SerializeField] private float gravity = -9.81f;
+    [SerializeField] private float jumpHeight = 1f;
+    [Description("Distance to accept target reached.")]
+    [SerializeField] private float stoppingDistance = 0.05f;
 
-    private NavMeshAgent agent;
+    [Header("Data Source")]
+    public NPCBlackboard blackboard;
+
     private Animator animator;
     private CharacterController controller;
-    private float timer;
-    private Vector3 jumpVelocity;
+    private Vector3 velocity;
+    private bool isJumping = false;
 
     private readonly int moveInputXHash = Animator.StringToHash("MoveInputX");
     private readonly int moveInputYHash = Animator.StringToHash("MoveInputY");
@@ -39,55 +26,68 @@ public class NPCMovement : MonoBehaviour
     private readonly int crouchingHash = Animator.StringToHash("Crouching");
     private readonly int jumpHash = Animator.StringToHash("Jump");
 
-    private void Start()
+    private void Awake()
     {
-        agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         controller = GetComponent<CharacterController>();
 
-        agent.updatePosition = false;
-        timer = wanderInterval;
+        if (blackboard == null)
+            blackboard = new();
     }
 
     private void Update()
     {
-        // Handle timer
-        if (isWandering)
+        HandleColliderDimensions();
+        Vector3 moveDirection = CalculateMovementDirection();
+
+        HandleGravityAndJump();
+
+        Vector3 finalMovement = moveDirection;
+        finalMovement.y = velocity.y;
+        controller.Move(finalMovement * Time.deltaTime);
+
+        HandleRotation(moveDirection);
+        UpdateAnimationParameters();
+    }
+
+    private Vector3 CalculateMovementDirection()
+    {
+        if (!blackboard.HasTarget)
+            return Vector3.zero;
+
+        Vector3 currentPosition = transform.position;
+        Vector3 targetPosition = blackboard.Target.Value;
+
+        Vector3 targetHorizontal = new(targetPosition.x, currentPosition.y, targetPosition.z);
+        Vector3 distanceVector = targetHorizontal - currentPosition;
+        float distance = distanceVector.magnitude;
+
+        if (distance <= stoppingDistance && !isJumping)
         {
-            timer += Time.deltaTime;
-            if (timer >= wanderInterval)
-            {
-                Vector3 newTargetPosition = GetRandomNavPosition(transform.position, wanderRadius, NavMesh.AllAreas);
-                agent.SetDestination(newTargetPosition);
-                timer = 0;
-            }
+            blackboard.CompleteTarget();
+            return Vector3.zero;
         }
 
-        // Handle isJumping and gravity
-        if (!isJumping)
+        float currentSpeed = GetCurrentSpeed();
+        return distanceVector.normalized * currentSpeed;
+    }
+
+    private void HandleRotation(Vector3 moveDirection)
+    {
+        if (moveDirection == Vector3.zero)
+            return;
+
+        Vector3 horizontalDirection = new(moveDirection.x, 0f, moveDirection.z);
+        if (horizontalDirection.sqrMagnitude > 0.001f)
         {
-            agent.nextPosition = transform.position;
-
-            Vector3 moveVelocity = agent.velocity;
-            moveVelocity.y = -2f;
-
-            controller.Move(moveVelocity * Time.deltaTime);
+            Quaternion targetRotation = Quaternion.LookRotation(horizontalDirection);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
-        else
-        {
-            jumpVelocity.y += gravity * Time.deltaTime;
-            controller.Move(jumpVelocity * Time.deltaTime);
+    }
 
-            if (controller.isGrounded && jumpVelocity.y < 0)
-            {
-                isJumping = false;
-                agent.updateRotation = true;
-                agent.Warp(transform.position);
-            }
-        }
-
-        // Handle crouching
-        if (isCrouching)
+    private void HandleColliderDimensions()
+    {
+        if (blackboard.IsCrouching)
         {
             controller.center = new Vector3(0f, 0.75f, 0f);
             controller.height = 1.3f;
@@ -97,88 +97,73 @@ public class NPCMovement : MonoBehaviour
             controller.center = new Vector3(0f, 1.1f, 0f);
             controller.height = 2f;
         }
-
-        float horizontalSpeed = true switch
-        {
-            _ when isSprinting => sprintSpeed,
-            _ when isCrouching => crouchSpeed,
-            _ => moveSpeed
-        };
-
-        agent.speed = horizontalSpeed;
-
-        // Handle walking animation
-        Vector3 worldVelocity = agent.velocity;
-        Vector3 localVelocity = transform.InverseTransformDirection(worldVelocity);
-
-        float localX = localVelocity.x / agent.speed;
-        float localZ = localVelocity.z / agent.speed;
-
-        UpdateParameters(new Vector2(localX, localZ), isSprinting, isCrouching);
     }
 
-    private void UpdateParameters(Vector2 moveInput, bool isSprinting, bool isCrouching)
+    private void HandleGravityAndJump()
+    {
+        if (controller.isGrounded)
+        {
+            if (velocity.y < 0)
+            {
+                velocity.y = -2f;
+                isJumping = false;
+            }
+
+            if (blackboard.JumpRequested)
+            {
+                isJumping = true;
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+                if (animator != null)
+                    animator.SetTrigger(jumpHash);
+            }
+        }
+        else
+            velocity.y += gravity * Time.deltaTime;
+
+        if (blackboard.JumpRequested)
+        {
+            blackboard.SetCrouching(false);
+            blackboard.ClearJumpRequest();
+        }
+    }
+
+    private float GetCurrentSpeed()
+    {
+        if (blackboard.IsSprinting)
+            return blackboard.SprintSpeed;
+
+        if (blackboard.IsCrouching)
+            return blackboard.CrouchSpeed;
+
+        return blackboard.MoveSpeed;
+    }
+
+    private void UpdateAnimationParameters()
     {
         if (animator == null)
-        {
-            Debug.LogError("Animator was null");
             return;
-        }
 
-        float modifier = isSprinting ? 2f : 1f;
-        animator.SetFloat(moveInputXHash, moveInput.x * modifier, 0.1f, Time.deltaTime);
-        animator.SetFloat(moveInputYHash, moveInput.y * modifier, 0.1f, Time.deltaTime);
+        Vector3 localVelocity = transform.InverseTransformDirection(controller.velocity);
+        float currentSpeed = GetCurrentSpeed();
+
+        float localX = currentSpeed > 0.01f ? localVelocity.x / currentSpeed : 0f;
+        float localZ = currentSpeed > 0.01f ? localVelocity.z / currentSpeed : 0f;
+
+        float modifier = blackboard.IsSprinting ? 2f : 1f;
+        animator.SetFloat(moveInputXHash, localX * modifier, 0.1f, Time.deltaTime);
+        animator.SetFloat(moveInputYHash, localZ * modifier, 0.1f, Time.deltaTime);
 
         animator.SetBool(isGroundedHash, controller.isGrounded);
-        animator.SetBool(crouchingHash, isCrouching);
+        animator.SetBool(crouchingHash, blackboard.IsCrouching);
 
         int crouchLayerIndex = animator.GetLayerIndex("Crouch Layer");
-
         if (crouchLayerIndex != -1)
         {
-            float targetWeight = isCrouching ? 1f : 0f;
+            float targetWeight = blackboard.IsCrouching ? 1f : 0f;
             float currentWeight = animator.GetLayerWeight(crouchLayerIndex);
-
             float newWeight = Mathf.MoveTowards(currentWeight, targetWeight, Time.deltaTime * 5f);
             animator.SetLayerWeight(crouchLayerIndex, newWeight);
         }
-    }
-
-    public void Jump()
-    {
-        if (isJumping || !controller.isGrounded)
-            return;
-
-        isJumping = true;
-        agent.updateRotation = false;
-
-        float verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-        jumpVelocity = agent.velocity;
-        jumpVelocity.y = verticalVelocity;
-
-        animator.SetTrigger(jumpHash);
-    }
-
-    public bool MoveToPoint(Vector3 origin, float maxDistance = 200f, int layerMask = NavMesh.AllAreas)
-    {
-        if (NavMesh.SamplePosition(origin, out NavMeshHit navHit, maxDistance, layerMask))
-        {
-            agent.SetDestination(navHit.position);
-            return true;
-        }
-
-        return false;
-    }
-
-    Vector3 GetRandomNavPosition(Vector3 origin, float distance, int layerMask)
-    {
-        Vector3 randomDirection = Random.insideUnitSphere * distance;
-        randomDirection += origin;
-
-        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit navHit, distance, layerMask))
-            return navHit.position;
-        else
-            return origin;
     }
 }
