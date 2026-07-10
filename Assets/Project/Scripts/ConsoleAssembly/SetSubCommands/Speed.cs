@@ -2,41 +2,43 @@
 using System.Linq;
 using UnityEngine;
 
-public class SetSpeedProperty : ICommand
+public class Speed : ICommand
 {
     public string Name => "Speed";
     public string[] Aliases => new string[] { };
     public string Description => "Sets speed properties of Player.";
-    public string Syntax => "set speed <type> <value>";
-    
+    public string Syntax => $"{Name.ToLower()} {string.Join(' ', Arguments.Select(a => a.DisplayString()))}";
+    public ArgumentDescriptor[] Arguments => new ArgumentDescriptor[]
+    {
+        new("type", ArgumentType.String, new string[] { "move", "sprint", "crouch", "noclip" }),
+        new("value", ArgumentType.Float)
+    };
+
     public void Execute(string[] args)
     {
-        if (args == null || args.Length == 0)
+        if ( args.Length == 0)
         {
-            ConsoleManager.Instance.Log($"Syntax: <i>{Syntax}</i>");
-            ConsoleManager.Instance.LogError("Missing argument: <type>. Expected: move | sprint | crouch | noclip");
+            ConsoleManager.Instance.LogMissingArgument(Syntax, Arguments[0].DisplayString(), string.Join(" | ", Arguments[0].AvailableOptions));
             return;
         }
 
-        string type = args[0].ToLower();
-        HashSet<string> validTypes = new() { "move", "sprint", "crouch", "noclip" };
+        string type = args[0];
 
-        if (!validTypes.Contains(type))
+        if (!Arguments[0].AvailableOptions.Contains(type.ToLower()))
         {
-            ConsoleManager.Instance.LogError("Invalid argument <type>. Expected: move | sprint | crouch | noclip");
+            ConsoleManager.Instance.LogInvalidArgument(Syntax, Arguments[0].DisplayString(), type, string.Join(" | ", Arguments[0].AvailableOptions));
             return;
         }
 
         if (args.Length < 2)
         {
-            ConsoleManager.Instance.Log($"Syntax: <i>{Syntax}</i>");
-            ConsoleManager.Instance.LogError("Missing argument: <value>");
+            ConsoleManager.Instance.LogMissingArgument(Syntax, Arguments[1].DisplayString(), Arguments[1].Type.ToString());
             return;
         }
 
         if (!int.TryParse(args[1], out int value))
         {
-            ConsoleManager.Instance.LogError("Invalid argument <value>: Expected integer");
+            ConsoleManager.Instance.LogInvalidArgument(Syntax, Arguments[1].DisplayString(), args[1], Arguments[1].Type.ToString());
             return;
         }
 
@@ -75,9 +77,8 @@ public class SetSpeedProperty : ICommand
 
         /// In case user is writing <type>
         string input = args.Length == 1 ? args[0].ToLower() : string.Empty;
-        List<string> types = new() { "move", "sprint", "crouch", "noclip" };
 
-        var matches = types.Where(type => type.StartsWith(input)).ToList();
+        var matches = ((string[])Arguments[0].AvailableOptions).Where(type => type.StartsWith(input)).ToList();
         return matches.Count > 0 ? matches : null;
     }
 }

@@ -1,14 +1,13 @@
-﻿public class Set : CommandWithProperties, IRootCommand
+﻿public class Set : CommandWithSubCommands, IRootCommand
 {
     public override string Name => "Set";
     public override string[] Aliases => new string[] { };
     public override string Description => "Sets various game parameters.";
-    public override string Syntax => "set <property> <...args>";
 
     public Set()
     {
-        RegisterProperty(new SetSpeedProperty());
-        RegisterProperty(new SetSkyColorProperty());
-        RegisterProperty(new SetNPCProperty());
+        RegisterSubCommand(new Speed());
+        RegisterSubCommand(new SkyColor());
+        RegisterSubCommand(new NPC());
     }
 }

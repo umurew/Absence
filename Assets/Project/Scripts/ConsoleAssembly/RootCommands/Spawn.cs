@@ -1,24 +1,38 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class Spawn : IRootCommand
 {
     public string Name => "Spawn";
     public string[] Aliases => new string[] { "Create" };
     public string Description => "Instansiates requested object if available.";
-    public string Syntax => "spawn <value>";
+    public string Syntax => $"{Name.ToLower()} {string.Join(' ', Arguments.Select(a => a.DisplayString()))}";
+    public ArgumentDescriptor[] Arguments => new ArgumentDescriptor[]
+    {
+        new("value", ArgumentType.String, null),
+        new("position", ArgumentType.Vector3, null, true)
+    };
 
     public void Execute(string[] args)
     {
-        if (args == null || args.Length == 0)
+        if (args.Length == 0)
         {
-            ConsoleManager.Instance.Log($"Syntax: <i>{Syntax}</i>");
-            ConsoleManager.Instance.LogError("Missing argument: <value>. Use TAB completion to see available values.");
+            ConsoleManager.Instance.LogMissingArgument(Syntax, Arguments[0].DisplayString(), null);
             return;
         }
 
-        if (!Spawner.Instance.TrySpawnObject(args[0]))
-            ConsoleManager.Instance.LogError($"Unknown object could not spawn: {args[0]}");
+        string targetObject = args[0];
+        string positionInput = args.Length >= 2 ? args[1] : "player";
+
+        if (!Parser.TryParseVector3(positionInput, out Vector3 spawnPosition))
+        {
+            ConsoleManager.Instance.LogInvalidArgument(Syntax, Arguments[1].DisplayString(), positionInput, Arguments[1].Type.ToString());
+            return;
+        }
+
+        if (!Spawner.Instance.TrySpawnObject(targetObject, spawnPosition))
+            ConsoleManager.Instance.LogError($"Prefab '{targetObject}' not found in registry or instantiation failed.");
     }
 
     public List<string> GetSuggestions(string[] args)

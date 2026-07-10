@@ -1,17 +1,21 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Collections.Generic;
 
 public class Help : IRootCommand
 {
     public string Name => "Help";
     public string[] Aliases => new string[] { };
     public string Description => "Lists all available commands or provides detailed help for a specific command.";
-    public string Syntax => "help | help <command>";
+    public string Syntax => $"{Name.ToLower()} {string.Join(' ', Arguments.Select(a => a.DisplayString()))}";
+    public ArgumentDescriptor[] Arguments => new ArgumentDescriptor[]
+    {
+        new("command", ArgumentType.String, ConsoleManager.Instance.GetAllCommands().Select(command => command.Name).ToArray(), true)
+    };
 
     public void Execute(string[] args)
     {
-        if (args == null || args.Length == 0)
+        if (args.Length == 0)
         {
             var commands = ConsoleManager.Instance.GetAllCommands();
             StringBuilder output = new();
@@ -23,8 +27,8 @@ public class Help : IRootCommand
             return;
         }
 
-        string targetCommandName = args[0].ToLower();
-        if (ConsoleManager.Instance.TryGetCommand(targetCommandName, out ICommand targetCommand))
+        string targetCommandName = args[0];
+        if (ConsoleManager.Instance.TryGetCommand(targetCommandName.ToLower(), out ICommand targetCommand))
         {
             StringBuilder output = new();
 
@@ -32,7 +36,7 @@ public class Help : IRootCommand
             ConsoleManager.Instance.Log(output.ToString());
         }
         else
-            ConsoleManager.Instance.LogError($"Unknown command: \"{args[0]}\". Type \"help\" to see a full list of commands.");
+            ConsoleManager.Instance.LogError($"Unknown command: \"{targetCommandName}\". Type \"help\" to see a full list of commands.");
     }
 
     private void AppendCommandDetails(StringBuilder stringBuilder, ICommand command, int indentLevel)
@@ -51,9 +55,9 @@ public class Help : IRootCommand
         stringBuilder.Append(tabs).Append($"<color={uiColors.PrimaryColor}><i>{command.Syntax}</i></color>").Append(inputManager.NewLine);
         stringBuilder.Append(tabs).Append($"<color={uiColors.GrayedColor}>{command.Description}</color>").Append(inputManager.Break);
 
-        if (command is ICommandWithProperties compositeCommand)
+        if (command is ICommandWithSubCommands compositeCommand)
         {
-            var properties = compositeCommand.GetUniqueProperties();
+            var properties = compositeCommand.GetUniqueSubCommands();
             if (properties != null)
             {
                 foreach (var prop in properties)
@@ -64,7 +68,7 @@ public class Help : IRootCommand
 
     public List<string> GetSuggestions(string[] args)
     {
-        if (args == null || args.Length > 1)
+        if (args.Length > 1)
             return null;
 
         string input = args.Length == 1 ? args[0].ToLower() : string.Empty;

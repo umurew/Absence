@@ -1,12 +1,15 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class NPCJumpProperty : ICommand
+public class Jump : ICommand
 {
     public string Name => "Jump";
     public string[] Aliases => new string[] { };
     public string Description => "Trigger NPC to jump if available.";
-    public string Syntax => "set npc jump";
+    public string Syntax => $"{Name.ToLower()} {string.Join(' ', Arguments.Select(a => a.DisplayString()))}";
+    public ArgumentDescriptor[] Arguments => Array.Empty<ArgumentDescriptor>();
 
     public void Execute(string[] args)
     {
@@ -24,8 +27,5 @@ public class NPCJumpProperty : ICommand
         npcMovement.Jump();
     }
 
-    public List<string> GetSuggestions(string[] args)
-    {
-        return null;
-    }
+    public List<string> GetSuggestions(string[] args) => null;
 }

@@ -160,6 +160,17 @@ public class NPCMovement : MonoBehaviour
         animator.SetTrigger(jumpHash);
     }
 
+    public bool MoveToPoint(Vector3 origin, float maxDistance = 200f, int layerMask = NavMesh.AllAreas)
+    {
+        if (NavMesh.SamplePosition(origin, out NavMeshHit navHit, maxDistance, layerMask))
+        {
+            agent.SetDestination(navHit.position);
+            return true;
+        }
+
+        return false;
+    }
+
     Vector3 GetRandomNavPosition(Vector3 origin, float distance, int layerMask)
     {
         Vector3 randomDirection = Random.insideUnitSphere * distance;

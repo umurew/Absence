@@ -244,7 +244,7 @@ namespace Meryel.UnityCodeAssist.Editor
         static void CallVisualStudioInstaller(string vsixPath)
         {
             EditorCoroutines.EditorCoroutineUtility.StartCoroutine(CallShell(
-                $"@for /f \"usebackq delims=\" %i in (`\"%ProgramFiles(x86)%\\Microsoft Visual Studio\\Installer\\vswhere.exe\" -latest -prerelease -products * -property enginePath`) do @set enginePath=%i & if exist \"%i\\VSIXInstaller.exe\" call \"%i\\VSIXInstaller.exe\" /u:VSIXLite2.6815b720-6186-48a1-a405-1387e54b41c6 & call \"%i\\VSIXInstaller.exe\" \"{vsixPath}\"", "Visual Studio"), MQTTnetInitializer.Publisher);
+                $"@for /f \"usebackq delims=\" %i in (`\"%ProgramFiles(x86)%\\Microsoft Visual Studio\\Installer\\vswhere.exe\" -latest -prerelease -products * -subCommand enginePath`) do @set enginePath=%i & if exist \"%i\\VSIXInstaller.exe\" call \"%i\\VSIXInstaller.exe\" /u:VSIXLite2.6815b720-6186-48a1-a405-1387e54b41c6 & call \"%i\\VSIXInstaller.exe\" \"{vsixPath}\"", "Visual Studio"), MQTTnetInitializer.Publisher);
         }
 
         static void CallVSCodeInstaller(string vsixPath)

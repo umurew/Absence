@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -38,12 +39,16 @@ public class ConsoleManager : MonoBehaviour
     {
         ConsoleBridge.OnLog += Log;
         ConsoleBridge.OnLogError += LogError;
+        ConsoleBridge.OnLogMissingArgument += LogMissingArgument;
+        ConsoleBridge.OnLogInvalidArgument += LogInvalidArgument;
     }
 
     private void OnDisable()
     {
         ConsoleBridge.OnLog -= Log;
         ConsoleBridge.OnLogError -= LogError;
+        ConsoleBridge.OnLogMissingArgument -= LogMissingArgument;
+        ConsoleBridge.OnLogInvalidArgument -= LogInvalidArgument;
     }
 
     private void Start()
@@ -64,13 +69,9 @@ public class ConsoleManager : MonoBehaviour
     {
         // Handle console toggling
         if (InputManager.Instance.UiActions.ToggleConsole.WasPressedThisFrame())
-        {
             ToggleConsole();
-        }
         else if (InputManager.Instance.UiActions.Back.WasPressedThisFrame() && consoleState)
-        {
             ToggleConsole();
-        }
     }
 
     private void ToggleConsole()
@@ -100,33 +101,34 @@ public class ConsoleManager : MonoBehaviour
         {
             e.StopPropagation();
 
-            if (string.IsNullOrEmpty(consoleInputTextField.value))
+            if (string.IsNullOrWhiteSpace(consoleInputTextField.value))
                 return;
 
             string inputString = consoleInputTextField.value;
             Log(inputString, true);
 
-            string[] splitInput = inputString.Trim().Split(' ');
-            if (splitInput.Length > 0)
+            string[] allTokens = Parser.SplitArguments(inputString);
+            
+            if (allTokens.Length > 0)
             {
-                string commandName = splitInput[0];
-                string[] arguments = splitInput.Skip(1).ToArray();
+                string commandName = allTokens[0];
+
+                string[] commandArgs = new string[allTokens.Length - 1];
+                Array.Copy(allTokens, 1, commandArgs, 0, commandArgs.Length);
 
                 if (_commands.TryGetValue(commandName.ToLower(), out ICommand command))
                 {
                     try
                     {
-                        command.Execute(arguments);
+                        command.Execute(commandArgs);
                     }
                     catch (Exception exception)
                     {
-                        Debug.LogError($"Exception occured while executing command '{commandName}': {exception.Message}");
+                        Debug.LogError($"Exception occured while executing command '{commandName}': {exception}");
                     }
                 }
                 else
-                {
                     LogError($"Unknown command: \"{commandName}\". Type \"help\" to see a full list of commands.");
-                }
             }
 
             consoleInputTextField.value = string.Empty;
@@ -134,6 +136,9 @@ public class ConsoleManager : MonoBehaviour
         }
         else if (e.keyCode == KeyCode.Tab)
         {
+            // TAB Completion Disabled Temporarily
+            return;
+
             e.StopPropagation();
 
             string inputString = consoleInputTextField.value;
@@ -157,14 +162,19 @@ public class ConsoleManager : MonoBehaviour
             string commandName = splitInput[0];
 
             // In case user is writing the root command
-            if (effectiveDepth == 0)
+            if (effectiveDepth == 0 || (effectiveDepth == 1 && endsWithSpace && _commands.ContainsKey(commandName.ToLower())))
             {
                 var matchingCommands = _commands.Keys.Where(command => command.StartsWith(commandName.ToLower())).ToList();
 
                 if (matchingCommands.Count == 1)
                 {
-                    consoleInputTextField.value = matchingCommands[0] + " ";
-                    consoleInputTextField.SelectRange(consoleInputTextField.value.Length, consoleInputTextField.value.Length);
+                    if (inputString.Trim().ToLower() != matchingCommands[0] && endsWithSpace)
+                    {
+                        consoleInputTextField.value = matchingCommands[0] + " ";
+                        consoleInputTextField.SelectRange(consoleInputTextField.value.Length, consoleInputTextField.value.Length);
+                        lastTabInput = consoleInputTextField.value;
+                        return;
+                    }
                 }
                 else if (matchingCommands.Count > 1)
                 {
@@ -177,10 +187,10 @@ public class ConsoleManager : MonoBehaviour
 
                     consoleInputTextField.value = matchingCommands[currentSuggestionIndex];
                     consoleInputTextField.SelectRange(consoleInputTextField.value.Length, consoleInputTextField.value.Length);
-                }
 
-                lastTabInput = consoleInputTextField.value;
-                return;
+                    lastTabInput = consoleInputTextField.value;
+                    return;
+                }
             }
 
             // In case user has written the root command correctly
@@ -254,11 +264,7 @@ public class ConsoleManager : MonoBehaviour
     {
         var inputManager = InputManager.Instance;
 
-        Label label = new()
-        {
-            text = printTimestamp ? $"[{DateTime.Now:HH:mm}] {message}{inputManager.Break}" : $"{message}{inputManager.Break}"
-        };
-
+        Label label = new() { text = printTimestamp ? $"[{DateTime.Now:HH:mm}] {message}{inputManager.Break}" : $"{message}{inputManager.Break}" };
         label.AddToClassList("console-text");
 
         consoleScrollView.Add(label);
@@ -270,15 +276,45 @@ public class ConsoleManager : MonoBehaviour
         var uiColors = ColorProvider.UIColors;
         var inputManager = InputManager.Instance;
 
-        Label label = new()
-        {
-            text = printTimestamp ? $"<color={uiColors.ErrorColor}>[{DateTime.Now:HH:mm}] {message}</color>{inputManager.Break}" : $"<color={uiColors.ErrorColor}>{message}</color>{inputManager.Break}"
-        };
-
+        Label label = new() { text = printTimestamp ? $"<color={uiColors.ErrorColor}>[{DateTime.Now:HH:mm}] {message}</color>{inputManager.Break}" : $"<color={uiColors.ErrorColor}>{message}</color>{inputManager.Break}" };
         label.AddToClassList("console-text");
 
         consoleScrollView.Add(label);
         StartCoroutine(DelayAutoScrollToEnd());
+    }
+
+    public void LogMissingArgument(string commandSyntax, string argumentName, string availableOptions, bool printTimestamp = false)
+    {
+        StringBuilder stringBuilder = new();
+        stringBuilder.Append($"Syntax: <i>{commandSyntax}</i>");
+
+        Log(stringBuilder.ToString(), printTimestamp);
+        stringBuilder.Clear();
+
+        stringBuilder.Append($"Missing required argument <{argumentName}>");
+
+        if (!string.IsNullOrEmpty(availableOptions))
+            stringBuilder.Append($"{InputManager.Instance.NewLine}Available options: {availableOptions}");
+
+        LogError(stringBuilder.ToString(), printTimestamp);
+        stringBuilder.Clear();
+    }
+
+    public void LogInvalidArgument(string commandSyntax, string argumentName, string invalidInput, string availableOptions, bool printTimestamp = false)
+    {
+        StringBuilder stringBuilder = new();
+        stringBuilder.Append($"Syntax: <i>{commandSyntax}</i>");
+
+        Log(stringBuilder.ToString(), printTimestamp);
+        stringBuilder.Clear();
+
+        stringBuilder.Append($"Invalid argument <{argumentName}> : {invalidInput}");
+
+        if (!string.IsNullOrEmpty(availableOptions))
+            stringBuilder.Append($"{InputManager.Instance.NewLine}Available options: {availableOptions}");
+
+        LogError(stringBuilder.ToString(), printTimestamp);
+        stringBuilder.Clear();
     }
 
     private void RegisterCommands()

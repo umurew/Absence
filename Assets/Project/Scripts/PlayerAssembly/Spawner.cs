@@ -10,7 +10,6 @@ public class Spawner : MonoBehaviour
     [Space(10)]
     [SerializeField] private GameObject environmentRoot;
     [SerializeField] private GameObject player;
-    [SerializeField] private float spawnDistance = 2f;
 
     private void Awake()
     {
@@ -24,14 +23,12 @@ public class Spawner : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public bool TrySpawnObject(string objectId)
+    public bool TrySpawnObject(string objectId, Vector3 position)
     {
         if (!registry.GetPrefab(objectId, out GameObject prefab))
             return false;
 
-        Vector3 spawnPosition = player.transform.position + (player.transform.forward * spawnDistance) + (player.transform.up * 1.85f);
-
-        GameObject cloneObject = GameObject.Instantiate(prefab, spawnPosition, Quaternion.identity);
+        GameObject cloneObject = GameObject.Instantiate(prefab, position, Quaternion.identity);
         cloneObject.transform.parent = environmentRoot.transform;
 
         return true;
