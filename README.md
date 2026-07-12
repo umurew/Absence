@@ -2,4 +2,10 @@
 
 ## To-Do
 
-- Investigate why States Blackboard doesn't log anything, even though Interactable's initialize succesfully.
+- Refactor utilitiy classes.
+- Implement NPCs
+  - Refactor NPC behaviour related MonoBehaviours
+  - Add NPC related commands
+  - Add NPC prefab
+  - Add prefab to Object Registry
+- Expand Parser class to better fetch Player relative Vector3 directives.

@@ -1,16 +1,27 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class LightingService : MonoBehaviour, ILightingService
 {
-    private static Dictionary<string, Color> _processedColors => new();
-    private static List<string> _cachedKeys;
+    private readonly Dictionary<string, Color> _processedColors = new();
+    private List<string> _cachedKeys;
+    private Camera _mainCamera;
+    private bool _initialized = false;
 
-    private Camera _targetCamera;
+    public IReadOnlyList<string> AvailableColorKeys => _cachedKeys;
 
-    static LightingService()
+    public void Initialize(Camera mainCamera)
     {
+        if (_initialized)
+        {
+            Debug.LogWarning($"{nameof(LightingService)}: {nameof(Initialize)} can't be called after initialization.");
+            return;
+        }
+
+        _mainCamera = mainCamera;
+
         var rawHex = new Dictionary<string, string>
         {
             { "clear_sky", "#73C2FB" },
@@ -31,35 +42,42 @@ public class LightingService : MonoBehaviour, ILightingService
         }
 
         _cachedKeys = _processedColors.Keys.ToList();
+
+        _initialized = true;
     }
-
-    public IReadOnlyList<string> AvailableColorKeys => _cachedKeys;
-
-    public void Initialize(Camera targetCamera) => _targetCamera = targetCamera;
 
     public bool GetColorFromKey(string key, out Color color)
     {
+        InitializedCheck();
+
         color = Color.magenta;
 
-        if (_processedColors.TryGetValue(key.ToLower(), out color))
+        if (string.IsNullOrEmpty(key))
+            return false;
+
+        string lowerKey = key.ToLower();
+
+        if (_processedColors.TryGetValue(lowerKey, out color))
             return true;
 
         if (ColorUtility.TryParseHtmlString(key, out color))
             return true;
 
-        Debug.Log($"Color key \"{key}\" was invalid!");
+        Debug.LogWarning($"{nameof(LightingService)}: Color key \"{key}\" is invalid!");
         return false;
     }
 
     public bool SetBackgroundColor(Color color)
     {
-        if (_targetCamera == null)
-        {
-            Debug.LogError("LightingService: Target camera was missing!");
-            return false;
-        }
+        InitializedCheck();
 
-        _targetCamera.backgroundColor = color;
+        _mainCamera.backgroundColor = color;
         return true;
+    }
+
+    private void InitializedCheck()
+    {
+        if (!_initialized)
+            throw new InvalidOperationException($"{nameof(LightingService)} must be initialized before use.");
     }
 }

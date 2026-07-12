@@ -2,7 +2,7 @@
 - Project name: Absence
 - Unity version: Unity 6000.4.10f1
 - Active game object:
-  - Name: Bootstrapper
-  - Tag: Untagged
-  - Layer: Default
+  - Name: Door
+  - Tag: Interactable
+  - Layer: Ignore Camera
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

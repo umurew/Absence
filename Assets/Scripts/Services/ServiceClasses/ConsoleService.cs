@@ -7,61 +7,39 @@ using UnityEngine.UIElements;
 
 public class ConsoleService : MonoBehaviour, IConsoleService
 {
-    // Injected dependecies
-    private IInputService inputService;
-    private UIDocument consoleDocument;
+    private IInputService _inputService;
+    private bool _initialized = false;
 
-    private Dictionary<string, ICommand> _commands => new();
-    private VisualElement console_container;
-    private ScrollView console_scrollView;
-    private TextField console_inputTextField;
+    private readonly Dictionary<string, ICommand> _commands = new();
+    private VisualElement _consoleContainer;
+    private ScrollView _consoleScrollView;
+    private TextField _consoleInputField;
 
-    private bool consoleState;
+    private bool _isConsoleEnabled;
 
     public void Initialize(IInputService inputService, UIDocument consoleDocument, ICommand[] commands)
     {
-        this.inputService = inputService;
-        this.consoleDocument = consoleDocument;
+        if (_initialized)
+        {
+            Debug.LogWarning($"{nameof(ConsoleService)}: {nameof(Initialize)} can't be called after initialization.");
+            return;
+        }
+
+        _inputService = inputService;
 
         foreach (ICommand command in commands)
-            command.Initialize(this);
-    }
+            RegisterCommand(command);
 
-    private void Start()
-    {
         VisualElement root = consoleDocument.rootVisualElement;
 
-        console_container = root.Q<VisualElement>("ConsoleContainer");
-        console_scrollView = root.Q<ScrollView>("ConsoleScrollView");
-        console_inputTextField = root.Q<TextField>("ConsoleInputTextField");
+        _consoleContainer = root.Q<VisualElement>("ConsoleContainer");
+        _consoleScrollView = root.Q<ScrollView>("ConsoleScrollView");
+        _consoleInputField = root.Q<TextField>("ConsoleInputField");
 
-        console_container.style.visibility = Visibility.Hidden;
-        console_inputTextField.RegisterCallback<KeyDownEvent>(HandleInputKeyDownEvent, TrickleDown.TrickleDown);
-    }
+        _consoleContainer.style.visibility = Visibility.Hidden;
+        _consoleInputField.RegisterCallback<KeyDownEvent>(HandleInputKeyDownEvent, TrickleDown.TrickleDown);
 
-    private void Update()
-    {
-        // Handle console toggling
-        if (inputService.UIActions.ToggleConsole.WasPressedThisFrame() || (inputService.UIActions.Back.WasPressedThisFrame() && consoleState))
-        {
-            consoleState = !consoleState;
-            console_container.style.visibility = consoleState ? Visibility.Visible : Visibility.Hidden;
-
-            if (!consoleState)
-            {
-                inputService.PlayerActions.Enable();
-                inputService.SetCursorState(true);
-                inputService.EnableControls();
-            }
-            else
-            {
-                inputService.PlayerActions.Disable();
-                inputService.SetCursorState(false);
-                inputService.DisableControls();
-
-                this.ExecuteDelayed(() => console_inputTextField.Focus());
-            }
-        }
+        _initialized = true;
     }
 
     public void RegisterCommand(ICommand command)
@@ -81,21 +59,23 @@ public class ConsoleService : MonoBehaviour, IConsoleService
                     _commands.Add(cleanAlias, command);
             }
         }
+
+        command.Initialize(this);
     }
 
     public void Log(string text)
     {
-        Label label = new() { text = $"{text}{inputService.NewLine}" };
+        Label label = new() { text = $"{text.AppendNewLine()}" };
         label.AddToClassList("console-text");
 
-        console_scrollView.Add(label);
+        _consoleScrollView.Add(label);
         this.ExecuteDelayed(() =>
         {
-            VisualElement scrollViewContainer = console_scrollView.contentContainer;
+            VisualElement scrollViewContainer = _consoleScrollView.contentContainer;
             if (scrollViewContainer.childCount > 0)
             {
                 VisualElement lastChild = scrollViewContainer[scrollViewContainer.childCount - 1];
-                console_scrollView.ScrollTo(lastChild);
+                _consoleScrollView.ScrollTo(lastChild);
             }
         });
     }
@@ -113,7 +93,7 @@ public class ConsoleService : MonoBehaviour, IConsoleService
         stringBuilder.Append($"Missing required argument <{argumentName}>");
 
         if (!string.IsNullOrEmpty(availableOptions))
-            stringBuilder.Append($"{inputService.NewLine}Available options: {availableOptions}");
+            stringBuilder.Append($"{string.Empty.AppendNewLine()}Available options: {availableOptions}");
 
         LogError(stringBuilder.ToString());
         stringBuilder.Clear();
@@ -130,17 +110,40 @@ public class ConsoleService : MonoBehaviour, IConsoleService
         stringBuilder.Append($"Invalid argument <{argumentName}> : {input}");
 
         if (!string.IsNullOrEmpty(availableOptions))
-            stringBuilder.Append($"{inputService.NewLine}Available options: {availableOptions}");
+            stringBuilder.Append($"{string.Empty.AppendNewLine()}Available options: {availableOptions}");
 
         LogError(stringBuilder.ToString());
         stringBuilder.Clear();
     }
 
-    public void Clear() => console_scrollView.Clear();
+    public void Clear() => _consoleScrollView.Clear();
 
     public bool TryGetCommand(string commandName, out ICommand command) => _commands.TryGetValue(commandName.ToLower(), out command);
 
     public IEnumerable<ICommand> GetAllCommands() => _commands.Values.Distinct();
+
+    private void Update()
+    {
+        if (!_initialized)
+            return;
+
+        if (_inputService.UIActions.ToggleConsole.WasPressedThisFrame() || (_inputService.UIActions.Back.WasPressedThisFrame() && _isConsoleEnabled))
+            ToggleConsoleState(!_isConsoleEnabled);
+    }
+
+    private void ToggleConsoleState(bool isConsoleEnabled)
+    {
+        _isConsoleEnabled = isConsoleEnabled;
+        _consoleContainer.style.visibility = isConsoleEnabled ? Visibility.Visible : Visibility.Hidden;
+
+        if (isConsoleEnabled)
+        {
+            _inputService.DisablePlayerControls();
+            this.ExecuteDelayed(() => _consoleInputField.Focus());
+        }
+        else
+            _inputService.EnablePlayerControls();
+    }
 
     private void HandleInputKeyDownEvent(KeyDownEvent e)
     {
@@ -148,10 +151,10 @@ public class ConsoleService : MonoBehaviour, IConsoleService
         {
             e.StopPropagation();
 
-            if (string.IsNullOrWhiteSpace(console_inputTextField.value))
+            if (string.IsNullOrWhiteSpace(_consoleInputField.value))
                 return;
 
-            string inputString = console_inputTextField.value;
+            string inputString = _consoleInputField.value;
             Log(inputString);
 
             string[] allTokens = Parser.SplitArguments(inputString);
@@ -178,8 +181,8 @@ public class ConsoleService : MonoBehaviour, IConsoleService
                     LogError($"Unknown command: \"{commandName}\". Type \"help\" to see a full list of commands.");
             }
 
-            console_inputTextField.value = string.Empty;
-            this.ExecuteDelayed(() => console_inputTextField.Focus());
+            _consoleInputField.value = string.Empty;
+            this.ExecuteDelayed(() => _consoleInputField.Focus());
         }
     }
 }

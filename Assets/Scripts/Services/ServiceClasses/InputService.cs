@@ -4,42 +4,62 @@ using UnityEngine;
 public class InputService : MonoBehaviour, IInputService, IDisposable
 {
     private InputActions _inputActions;
+    private bool _initialized = false;
 
     public InputActions.PlayerActions PlayerActions => _inputActions.Player;
     public InputActions.UIActions UIActions => _inputActions.UI;
 
-    public string NewLine => "\n";
-    public string Break => "\n\n";
-    public string Tab => "\t";
-
     public void Initialize()
     {
+        if (_initialized)
+        {
+            Debug.LogWarning($"{nameof(InputService)}: {nameof(Initialize)} can't be called after initialization.");
+            return;
+        }
+
         _inputActions = new();
 
         PlayerActions.Enable();
         UIActions.Enable();
+
+        _initialized = true;
     }
 
     public void SetCursorState(bool isLocked)
     {
-        Cursor.lockState = isLocked
-            ? CursorLockMode.Locked
-            : CursorLockMode.None;
+        InitializedCheck();
 
+        Cursor.lockState = isLocked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !isLocked;
     }
 
-    public void EnableControls()
+    public void EnablePlayerControls()
     {
+        InitializedCheck();
 
+        SetCursorState(true);
+        PlayerActions.Enable();
     }
 
-    public void DisableControls()
+    public void DisablePlayerControls()
     {
+        InitializedCheck();
 
+        SetCursorState(false);
+        PlayerActions.Disable();
     }
 
-    public void Dispose() => _inputActions?.Dispose();
+    public void Dispose()
+    {
+        _inputActions?.Dispose();
+        _inputActions = null;
+    }
 
     private void OnDestroy() => Dispose();
+
+    private void InitializedCheck()
+    {
+        if (!_initialized)
+            throw new InvalidOperationException($"{nameof(InputService)} must be initialized before use.");
+    }
 }

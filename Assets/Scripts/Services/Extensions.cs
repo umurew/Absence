@@ -13,4 +13,8 @@ public static class Extensions
             action?.Invoke();
         }
     }
+
+    public static string AppendNewLine(this string text) => text + "\n";
+    public static string AppendBreak(this string text) => text + "\n\n";
+    public static string AppendTab(this string text) => text + "\t";
 }

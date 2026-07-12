@@ -1,81 +1,88 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(Collider))]
 public class Door : MonoBehaviour, IInteractable
 {
-    // Serialized variables
-    [SerializeField] private bool locked = false;
+    [SerializeField] private bool isLocked = false;
     [SerializeField] private float openAngle = -100f;
     [SerializeField] private float closedAngle = 0f;
     [SerializeField] private float smoothSpeed = 5f;
 
-    // Injected dependecies
-    private StatesBlackboard blackboard;
+    private StatesBlackboard _statesBlackboard;
 
-    // Private variables
-    private Collider baseCollider;
-    private bool doorState = false;
-    private bool debounce = false;
-    private Quaternion targetRotation;
-    private readonly static WaitForSeconds _waitForSeconds0_3 = new(0.3f);
-
+    private Collider _collider;
+    private bool _isDoorOpened = false;
+    private bool _debounce = false;
     private bool _initialized = false;
+    private Quaternion _targetRotation;
+    private readonly static WaitForSeconds _waitForSeconds0_3 = new(0.3f);
 
     public void Initialize(StatesBlackboard statesBlackboard)
     {
-        this.blackboard = statesBlackboard;
+        if (_initialized)
+        {
+            Debug.LogWarning($"{nameof(Door)}: {nameof(Initialize)} can't be called after initialization.");
+            return;
+        }
+
+        _statesBlackboard = statesBlackboard;
+        _targetRotation = Quaternion.Euler(0f, closedAngle, 0f);
         _initialized = true;
     }
 
-    private void Start() => targetRotation = Quaternion.Euler(0f, closedAngle, 0f);
-
-    private void Update() => transform.localRotation = Quaternion.Slerp(transform.localRotation, targetRotation, Time.deltaTime * smoothSpeed);
-
     public void Interact()
     {
-        if (!_initialized || debounce)
+        InitializedCheck();
+
+        if (_debounce)
             return;
 
-        if (locked)
+        if (isLocked)
         {
-            if (!blackboard.Get<bool>("has_master_key"))
+            if (!_statesBlackboard.Get<bool>("has_master_key"))
                 return;
 
-            locked = false;
+            isLocked = false;
+            return;
         }
 
         StartCoroutine(InteractionDebounceRoutine());
 
-        doorState = !doorState;
-        float targetAngle = doorState ? openAngle : closedAngle;
-        targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
+        _isDoorOpened = !_isDoorOpened;
+        float targetAngle = _isDoorOpened ? openAngle : closedAngle;
+        _targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
     }
 
     public string GetInteractPrompt()
     {
-        if (!_initialized || debounce)
-            return string.Empty;
+        InitializedCheck();
 
-        if (locked)
-            return blackboard.Get<bool>("has_master_key") ? "Unlock" : "It's Locked";
+        if (_debounce)
+            return "...";
 
-        return doorState ? "Close" : "Open";
+        if (isLocked)
+            return _statesBlackboard.Get<bool>("has_master_key") ? "Unlock" : "It's Locked";
+
+        return _isDoorOpened ? "Close" : "Open";
     }
 
-    private IEnumerator InteractionDebounceRoutine()
+    private void Update()
     {
-        debounce = true;
-        yield return _waitForSeconds0_3;
-        debounce = false;
+        if (!_initialized)
+            return;
+
+        transform.localRotation = Quaternion.Slerp(transform.localRotation, _targetRotation, Time.deltaTime * smoothSpeed);
     }
 
     private void OnDrawGizmosSelected()
     {
-        if (baseCollider == null)
-            baseCollider = GetComponent<Collider>();
+        if (_collider == null)
+            _collider = GetComponent<Collider>();
 
         Gizmos.color = ColorProvider.GizmoColors.IInteractableCollider;
-        Gizmos.DrawWireCube(baseCollider.bounds.center, baseCollider.bounds.size);
+        Gizmos.DrawWireCube(_collider.bounds.center, _collider.bounds.size);
 
         Vector3 position = transform.position;
 
@@ -114,8 +121,23 @@ public class Door : MonoBehaviour, IInteractable
             };
             style.normal.textColor = ColorProvider.GizmoColors.HandleLabel;
 
-            UnityEditor.Handles.Label(labelPosition, locked ? "LOCKED" : "UNLOCKED", style);
+            UnityEditor.Handles.Label(labelPosition, isLocked ? "LOCKED" : "UNLOCKED", style);
         }
 #endif
+    }
+
+    private IEnumerator InteractionDebounceRoutine()
+    {
+        _debounce = true;
+
+        yield return _waitForSeconds0_3;
+
+        _debounce = false;
+    }
+
+    private void InitializedCheck()
+    {
+        if (!_initialized)
+            throw new InvalidOperationException($"{nameof(Door)} must be initialized before use.");
     }
 }

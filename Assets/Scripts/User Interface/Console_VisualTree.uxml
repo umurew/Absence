@@ -2,6 +2,6 @@
     <Style src="project://database/Assets/Scripts/User%20Interface/Console_StyleSheet.uss?fileID=7433441132597879392&amp;guid=ae9362bb8898d044e939accd641e2ad6&amp;type=3#Console_StyleSheet"/>
     <VisualElement name="ConsoleContainer" class="console-container">
         <ScrollView name="ConsoleScrollView" class="console-scroll-view"/>
-        <TextField name="ConsoleInputTextField" label="&gt;" value="" class="console-input-textfield"/>
+        <TextField name="ConsoleInputField" label="&gt;" value="" class="console-input-textfield"/>
     </VisualElement>
 </UXML>

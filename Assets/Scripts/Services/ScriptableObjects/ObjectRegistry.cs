@@ -15,8 +15,16 @@ public class ObjectRegistry : ScriptableObject
     [SerializeField] private List<ObjectData> items;
     private Dictionary<string, GameObject> _registryCache;
 
+    private bool _initialized = false;
+
     public void Initialize()
     {
+        if (_initialized)
+        {
+            Debug.LogWarning($"{nameof(ObjectRegistry)}: {nameof(Initialize)} can't be called after initialization.");
+            return;
+        }
+
         _registryCache = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (var item in items)
@@ -24,9 +32,29 @@ public class ObjectRegistry : ScriptableObject
             if (!string.IsNullOrEmpty(item.Id) && item.Prefab != null)
                 _registryCache[item.Id] = item.Prefab;
         }
+
+        _initialized = true;
     }
 
-    public bool GetPrefab(string objectId, out GameObject gameObject) => _registryCache.TryGetValue(objectId, out gameObject);
+    public bool GetPrefab(string objectId, out GameObject gameObject)
+    {
+        InitializedCheck();
 
-    public List<string> GetAvailableKeys() => _registryCache.Keys.ToList();
+        return _registryCache.TryGetValue(objectId, out gameObject);
+    }
+
+    public List<string> GetAvailableKeys()
+    {
+        InitializedCheck();
+
+        return _registryCache.Keys.ToList();
+    }
+
+    private void OnEnable() => _initialized = false;
+
+    private void InitializedCheck()
+    {
+        if (!_initialized)
+            throw new InvalidOperationException($"{nameof(ObjectRegistry)} must be initialized before use.");
+    }
 }

@@ -660,10 +660,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Bootstrapper::GameBootstrapper
   mainCamera: {fileID: 1683044042}
-  objectRegistry: {fileID: 11400000, guid: 82d5d42a3ef7aa441a4c71e33999a72f, type: 2}
-  statesBlackboard: {fileID: 11400000, guid: 6d95386e6da516e43a27da135eae2667, type: 2}
+  playerController: {fileID: 1744554993}
   hudDocument: {fileID: 2076732459}
   consoleDocument: {fileID: 1070962946}
+  objectRegistry: {fileID: 11400000, guid: 82d5d42a3ef7aa441a4c71e33999a72f, type: 2}
+  statesBlackboard: {fileID: 11400000, guid: 6d95386e6da516e43a27da135eae2667, type: 2}
   inputServicePrefab: {fileID: 228447626369553302, guid: 301503453b48bc741b0e6a477a96f05f, type: 3}
   lightingServicePrefab: {fileID: 7192674256223833030, guid: 9ccfeba143e9f844e9fa82ea6abc1e54, type: 3}
   spawnerServicePrefab: {fileID: 5231288410272968477, guid: 96f5188a101d62a4d9bf2eb11a26e67d, type: 3}
@@ -956,6 +957,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2072499551868513596, guid: 20509f486ae19b145bc1c127dcea4c77, type: 3}
   m_PrefabInstance: {fileID: 411860379036931828}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1744554993 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 545648479825651797, guid: 20509f486ae19b145bc1c127dcea4c77, type: 3}
+  m_PrefabInstance: {fileID: 411860379036931828}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c2485e416c6bc640a39c0508504744d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::PlayerController
 --- !u!1 &1801780785
 GameObject:
   m_ObjectHideFlags: 0
@@ -1196,6 +1208,14 @@ PrefabInstance:
     - target: {fileID: 6981662907201851665, guid: 9c950aca6b13bbb4a9ea6df15fe5fe80, type: 3}
       propertyPath: locked
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6981662907201851665, guid: 9c950aca6b13bbb4a9ea6df15fe5fe80, type: 3}
+      propertyPath: isLocked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6981662907201851665, guid: 9c950aca6b13bbb4a9ea6df15fe5fe80, type: 3}
+      propertyPath: openAngle
+      value: -95
       objectReference: {fileID: 0}
     - target: {fileID: 8910647096220232445, guid: 9c950aca6b13bbb4a9ea6df15fe5fe80, type: 3}
       propertyPath: m_Name

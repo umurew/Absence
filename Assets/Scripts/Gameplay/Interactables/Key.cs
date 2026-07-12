@@ -1,45 +1,52 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
 public class Key : MonoBehaviour, IInteractable
 {
-    // Injected dependecies
-    private StatesBlackboard blackboard;
-
-    // Private variables
-    private Collider baseCollider;
-
+    private StatesBlackboard _statesBlackboard;
+    private Collider _collider;
     private bool _initialized = false;
 
     public void Initialize(StatesBlackboard statesBlackboard)
     {
-        this.blackboard = statesBlackboard;
+        if (_initialized)
+        {
+            Debug.LogWarning($"{nameof(Key)}: {nameof(Initialize)} can't be called after initialization.");
+            return;
+        }
+
+        _statesBlackboard = statesBlackboard;
         _initialized = true;
     }
 
     public void Interact()
     {
-        if (!_initialized)
-            return;
+        InitializedCheck();
 
         Destroy(gameObject);
-        blackboard.Set("has_master_key", true);
+        _statesBlackboard.Set("has_master_key", true);
     }
 
     public string GetInteractPrompt()
     {
-        if (!_initialized)
-            return string.Empty;
+        InitializedCheck();
 
         return "Take";
     }
 
     private void OnDrawGizmosSelected()
     {
-        if (baseCollider == null)
-            baseCollider = GetComponent<Collider>();
+        if (_collider == null)
+            _collider = GetComponent<Collider>();
 
         Gizmos.color = ColorProvider.GizmoColors.IInteractableCollider;
-        Gizmos.DrawWireCube(baseCollider.bounds.center, baseCollider.bounds.size);
+        Gizmos.DrawWireCube(_collider.bounds.center, _collider.bounds.size);
+    }
+
+    private void InitializedCheck()
+    {
+        if (!_initialized)
+            throw new InvalidOperationException($"{nameof(Door)} must be initialized before use.");
     }
 }
