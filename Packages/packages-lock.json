@@ -1,11 +1,5 @@
 {
   "dependencies": {
-    "com.merry-yellow.code-assist": {
-      "version": "file:com.merry-yellow.code-assist",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.prenominal.realtimecsg": {
       "version": "https://github.com/LogicalError/realtime-CSG-for-unity.git",
       "depth": 0,
